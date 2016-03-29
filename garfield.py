@@ -3,8 +3,7 @@ import MySQLdb
 import feedparser
 import time
 import hashlib
-import re
-from datetime import datetime
+from BeautifulSoup import BeautifulSoup
 
 crontable = []
 crontable.append([300, "update_data"])
@@ -16,6 +15,7 @@ mysqluser = config["MYSQL_USER"]
 mysqlpass = config["MYSQL_PASS"]
 mysqldb = config["MYSQL_DB"]
 
+comictitle = "Garfield"
 comicname = "garfield"
 
 try:
@@ -41,19 +41,17 @@ finally:
 
 def update_data():
 
-    feed = feedparser.parse('http://www.hoodcomputing.com/garfield.php')
+    feed = feedparser.parse('http://www.comicsyndicate.org/Feed/Garfield')
 
     result = feed.entries[0].summary_detail
 
-    comicdatematch = re.search(r'\d{4}-\d{2}-\d{2}', feed.entries[0].link)
+    soup = BeautifulSoup(result['value'])
 
-    comicdate = datetime.strptime(comicdatematch.group(), '%Y-%m-%d').date()
+    comic = (soup.find("img")["src"])
 
-    link = "http://garfield.com/comic/" + str(comicdate)
+    link = (soup.find("a")["href"])
 
-    comic = feed.entries[0].link
-
-    prehash = comic + link
+    prehash = comic
 
     hash = hashlib.md5()
     hash.update(prehash)
@@ -105,7 +103,7 @@ def post_comic():
         result = curs.fetchall()
         for subscribed in result:
             if subscribed[2] != currenthash:
-                outputs.append([subscribed[1], "*Garfield*\n" + image])
+                outputs.append([subscribed[1], "*" + comictitle + "*\n" + image])
                 outputs.append([subscribed[1], "```" + pageurl + "```"])
                 cmd = "UPDATE tbl_subscriptions SET lastsent = %s WHERE slackuser = %s AND comicname = %s"
                 curs.execute(cmd, ([currenthash], [subscribed[0]], [comicname]))
