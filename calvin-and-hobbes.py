@@ -15,8 +15,8 @@ mysqluser = config["MYSQL_USER"]
 mysqlpass = config["MYSQL_PASS"]
 mysqldb = config["MYSQL_DB"]
 
-comictitle = "Peanuts"
-comicname = "peanuts"
+comictitle = "Calvin and Hobbes"
+comicname = "calvin-and-hobbes"
 
 try:
     conn = MySQLdb.Connection(mysqlserver, mysqluser, mysqlpass, mysqldb)
@@ -41,7 +41,7 @@ finally:
 
 def update_data():
 
-    feed = feedparser.parse('http://www.comicsyndicate.org/Feed/Peanuts')
+    feed = feedparser.parse('http://www.comicsyndicate.org/Feed/Calvin%20and%20Hobbes')
 
     result = feed.entries[0].summary_detail
 
