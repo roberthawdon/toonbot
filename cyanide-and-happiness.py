@@ -4,6 +4,7 @@ import feedparser
 import time
 import hashlib
 import re
+from BeautifulSoup import BeautifulSoup
 from datetime import datetime
 
 crontable = []
@@ -46,7 +47,7 @@ def update_data():
 
     result = feed.entries[0].summary_detail
 
-    soup = BeautifulSoup(result[0]['value'])
+    soup = BeautifulSoup(result['value'])
 
     comic = (soup.find("img")["src"])
 
