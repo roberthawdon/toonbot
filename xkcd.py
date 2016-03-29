@@ -17,6 +17,27 @@ mysqldb = config["MYSQL_DB"]
 
 comicname = "xkcd"
 
+try:
+    conn = MySQLdb.Connection(mysqlserver, mysqluser, mysqlpass, mysqldb)
+    curs = conn.cursor()
+    cmd = "SELECT comicname FROM tbl_comics WHERE comicname = %s"
+    curs.execute(cmd, ([comicname]))
+    result = curs.fetchall()
+    if len(result) == 0:
+        cmd = "INSERT INTO tbl_comics (comicname) VALUES (%s)"
+        curs.execute(cmd, ([comicname]))
+        conn.commit()
+
+except curs.Error, e:
+
+    print "Error %d: %s" % (e.args[0], e.args[1])
+    sys.exit(1)
+
+finally:
+
+    if curs:
+        curs.close()
+
 def update_data():
 
     feed = feedparser.parse('http://xkcd.com/atom.xml')
