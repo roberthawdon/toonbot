@@ -1,9 +1,10 @@
 from __main__ import *
-from BeautifulSoup import BeautifulSoup
 import MySQLdb
 import feedparser
 import time
 import hashlib
+from BeautifulSoup import BeautifulSoup
+from datetime import datetime
 
 crontable = []
 crontable.append([300, "update_data"])
@@ -15,6 +16,7 @@ mysqluser = config["MYSQL_USER"]
 mysqlpass = config["MYSQL_PASS"]
 mysqldb = config["MYSQL_DB"]
 
+comictitle = "XKCD"
 comicname = "xkcd"
 
 try:
@@ -40,21 +42,21 @@ finally:
 
 def update_data():
 
-    feed = feedparser.parse('http://xkcd.com/atom.xml')
+    feed = feedparser.parse('http://www.comicsyndicate.org/Feed/xkcd')
 
     result = feed.entries[0].summary_detail
-
-    title = feed.entries[0].title
-
-    link = feed.entries[0].link
 
     soup = BeautifulSoup(result['value'])
 
     comic = (soup.find("img")["src"])
 
-    text = (soup.find("img")["title"])
+    title = (soup.find("img")["alt"])
 
-    prehash = title + comic + link + text
+    link = (soup.find("a")["href"])
+
+    text = (soup.div.contents[0])
+
+    prehash = comic
 
     hash = hashlib.md5()
     hash.update(prehash)
@@ -94,21 +96,21 @@ def post_comic():
         for hash in result:
             currenthash = hash[0]
 
-        cmd = "SELECT title, image, text, pageurl FROM tbl_comic_data WHERE comichash = %s"
+        cmd = "SELECT image, pageurl, title, text FROM tbl_comic_data WHERE comichash = %s"
         curs.execute(cmd, ([currenthash]))
         result = curs.fetchall()
         for comicdata in result:
-            title = comicdata[0]
-            image = comicdata[1]
-            text = comicdata[2]
-            pageurl = comicdata[3]
+            image = comicdata[0]
+            pageurl = comicdata[1]
+            title = comicdata[2]
+            text = comicdata[3]
 
         cmd = "SELECT U.slackuser, U.dmid, S.lastsent FROM tbl_subscriptions S LEFT OUTER JOIN tbl_users U ON U.slackuser = S.slackuser WHERE comicname = %s"
         curs.execute(cmd, ([comicname]))
         result = curs.fetchall()
         for subscribed in result:
             if subscribed[2] != currenthash:
-                outputs.append([subscribed[1], "*XKCD*\n" + title + "\n" + image])
+                outputs.append([subscribed[1], "*" + comictitle + "*\n_" + title + "_\n" + image])
                 outputs.append([subscribed[1], text + "\n```" + pageurl + "```"])
                 cmd = "UPDATE tbl_subscriptions SET lastsent = %s WHERE slackuser = %s AND comicname = %s"
                 curs.execute(cmd, ([currenthash], [subscribed[0]], [comicname]))
