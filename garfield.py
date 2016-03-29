@@ -3,6 +3,8 @@ import MySQLdb
 import feedparser
 import time
 import hashlib
+import re
+from datetime import datetime
 
 crontable = []
 crontable.append([300, "update_data"])
@@ -43,7 +45,9 @@ def update_data():
 
     result = feed.entries[0].summary_detail
 
-    comicdate = match = re.search(r'\d{4}-\d{2}-\d{2}', feed.entries[0].link)
+    comicdatematch = re.search(r'\d{4}-\d{2}-\d{2}', feed.entries[0].link)
+
+    comicdate = datetime.strptime(comicdatematch.group(), '%Y-%m-%d').date()
 
     link = "http://garfield.com/comic/" + str(comicdate)
 
