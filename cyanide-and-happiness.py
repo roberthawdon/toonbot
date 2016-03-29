@@ -3,9 +3,7 @@ import MySQLdb
 import feedparser
 import time
 import hashlib
-import re
 from BeautifulSoup import BeautifulSoup
-from datetime import datetime
 
 crontable = []
 crontable.append([300, "update_data"])
