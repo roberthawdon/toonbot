@@ -42,11 +42,11 @@ def update_data():
 
     feed = feedparser.parse('http://comicfeeds.chrisbenard.net/view/pennyarcade/default')
 
-    result = feed.entries[0].description
+    result = feed.entries[0].summary_detail
 
     link = feed.entries[0].link
 
-    soup = BeautifulSoup(result[0]['value'])
+    soup = BeautifulSoup(result['value'])
 
     comic = (soup.find("img")["src"])
 
