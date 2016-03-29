@@ -15,7 +15,7 @@ mysqluser = config["MYSQL_USER"]
 mysqlpass = config["MYSQL_PASS"]
 mysqldb = config["MYSQL_DB"]
 
-comicname = "dilbert"
+comicname = "penny-arcade"
 
 try:
     conn = MySQLdb.Connection(mysqlserver, mysqluser, mysqlpass, mysqldb)
@@ -40,13 +40,13 @@ finally:
 
 def update_data():
 
-    feed = feedparser.parse('http://comicfeeds.chrisbenard.net/view/dilbert/default')
+    feed = feedparser.parse('http://comicfeeds.chrisbenard.net/view/pennyarcade/default')
 
-    result = feed.entries[0].content
+    result = feed.entries[0].summary_detail
 
     link = feed.entries[0].link
 
-    soup = BeautifulSoup(result[0]['value'])
+    soup = BeautifulSoup(result['value'])
 
     comic = (soup.find("img")["src"])
 
@@ -102,7 +102,7 @@ def post_comic():
         result = curs.fetchall()
         for subscribed in result:
             if subscribed[2] != currenthash:
-                outputs.append([subscribed[1], "*Dilbert*\n" + image])
+                outputs.append([subscribed[1], "*Penny Arcade*\n" + image])
                 outputs.append([subscribed[1], "```" + pageurl + "```"])
                 cmd = "UPDATE tbl_subscriptions SET lastsent = %s WHERE slackuser = %s AND comicname = %s"
                 curs.execute(cmd, ([currenthash], [subscribed[0]], [comicname]))
