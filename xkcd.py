@@ -3,12 +3,14 @@ import MySQLdb
 import feedparser
 import time
 import hashlib
+import random
 from BeautifulSoup import BeautifulSoup
-from datetime import datetime
+
+posttime = random.randint(180,600)
 
 crontable = []
 crontable.append([300, "update_data"])
-crontable.append([300, "post_comic"])
+crontable.append([posttime, "post_comic"])
 outputs = []
 
 mysqlserver = config["MYSQL_SERVER"]
@@ -116,7 +118,7 @@ def post_comic():
         for subscribed in result:
             if subscribed[2] != currenthash:
                 outputs.append([subscribed[1], "*" + comictitle + "*\n_" + title + "_\n" + image])
-                outputs.append([subscribed[1], text + "\n```" + pageurl + "```"])
+                outputs.append([subscribed[1], "> " + text + "\n```" + pageurl + "```"])
                 cmd = "UPDATE tbl_subscriptions SET lastsent = %s WHERE slackuser = %s AND comicname = %s"
                 curs.execute(cmd, ([currenthash], [subscribed[0]], [comicname]))
                 result = curs.fetchall()
