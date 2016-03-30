@@ -3,11 +3,14 @@ import MySQLdb
 import feedparser
 import time
 import hashlib
+import random
 from BeautifulSoup import BeautifulSoup
+
+posttime = random.randint(180,600)
 
 crontable = []
 crontable.append([300, "update_data"])
-crontable.append([300, "post_comic"])
+crontable.append([posttime, "post_comic"])
 outputs = []
 
 mysqlserver = config["MYSQL_SERVER"]
