@@ -42,24 +42,29 @@ finally:
 
 def update_data():
 
-    feed = feedparser.parse('http://www.comicsyndicate.org/Feed/Penny%20Arcade')
+    try:
 
-    result = feed.entries[0].summary_detail
+        feed = feedparser.parse('http://www.comicsyndicate.org/Feed/Penny%20Arcade')
 
-    soup = BeautifulSoup(result['value'])
+        result = feed.entries[0].summary_detail
 
-    comic = (soup.find("img")["src"])
+        soup = BeautifulSoup(result['value'])
 
-    title = (soup.find("img")["alt"])
+        comic = (soup.find("img")["src"])
 
-    link = (soup.find("a")["href"])
+        title = (soup.find("img")["alt"])
 
-    prehash = comic
+        link = (soup.find("a")["href"])
 
-    hash = hashlib.md5()
-    hash.update(prehash)
+        prehash = comic
 
-    comichash = hash.hexdigest()
+        hash = hashlib.md5()
+        hash.update(prehash)
+
+        comichash = hash.hexdigest()
+
+    except Exception, e:
+        pass
 
     try:
         conn = MySQLdb.Connection(mysqlserver, mysqluser, mysqlpass, mysqldb)
