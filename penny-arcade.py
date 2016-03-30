@@ -66,7 +66,7 @@ def update_data():
         comichash = hash.hexdigest()
 
     except Exception, e:
-        pass
+        return
 
     try:
         conn = MySQLdb.Connection(mysqlserver, mysqluser, mysqlpass, mysqldb)
