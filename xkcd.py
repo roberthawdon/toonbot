@@ -3,12 +3,14 @@ import MySQLdb
 import feedparser
 import time
 import hashlib
+import random
 from BeautifulSoup import BeautifulSoup
-from datetime import datetime
+
+posttime = random.randint(180,600)
 
 crontable = []
 crontable.append([300, "update_data"])
-crontable.append([300, "post_comic"])
+crontable.append([posttime, "post_comic"])
 outputs = []
 
 mysqlserver = config["MYSQL_SERVER"]
@@ -42,26 +44,31 @@ finally:
 
 def update_data():
 
-    feed = feedparser.parse('http://www.comicsyndicate.org/Feed/xkcd')
+    try:
 
-    result = feed.entries[0].summary_detail
+        feed = feedparser.parse('http://www.comicsyndicate.org/Feed/xkcd')
 
-    soup = BeautifulSoup(result['value'])
+        result = feed.entries[0].summary_detail
 
-    comic = (soup.find("img")["src"])
+        soup = BeautifulSoup(result['value'])
 
-    title = (soup.find("img")["alt"])
+        comic = (soup.find("img")["src"])
 
-    link = (soup.find("a")["href"])
+        title = (soup.find("img")["alt"])
 
-    text = (soup.div.contents[0])
+        link = (soup.find("a")["href"])
 
-    prehash = comic
+        text = (soup.div.contents[0])
 
-    hash = hashlib.md5()
-    hash.update(prehash)
+        prehash = comic
 
-    comichash = hash.hexdigest()
+        hash = hashlib.md5()
+        hash.update(prehash)
+
+        comichash = hash.hexdigest()
+
+    except Exception, e:
+        return
 
     try:
         conn = MySQLdb.Connection(mysqlserver, mysqluser, mysqlpass, mysqldb)
@@ -111,7 +118,7 @@ def post_comic():
         for subscribed in result:
             if subscribed[2] != currenthash:
                 outputs.append([subscribed[1], "*" + comictitle + "*\n_" + title + "_\n" + image])
-                outputs.append([subscribed[1], text + "\n```" + pageurl + "```"])
+                outputs.append([subscribed[1], "> " + text + "\n```" + pageurl + "```"])
                 cmd = "UPDATE tbl_subscriptions SET lastsent = %s WHERE slackuser = %s AND comicname = %s"
                 curs.execute(cmd, ([currenthash], [subscribed[0]], [comicname]))
                 result = curs.fetchall()

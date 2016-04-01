@@ -3,12 +3,14 @@ import MySQLdb
 import feedparser
 import time
 import hashlib
+import random
 from BeautifulSoup import BeautifulSoup
-from datetime import datetime
+
+posttime = random.randint(180,600)
 
 crontable = []
 crontable.append([300, "update_data"])
-crontable.append([300, "post_comic"])
+crontable.append([posttime, "post_comic"])
 outputs = []
 
 mysqlserver = config["MYSQL_SERVER"]
@@ -42,24 +44,29 @@ finally:
 
 def update_data():
 
-    feed = feedparser.parse('http://www.comicsyndicate.org/Feed/Penny%20Arcade')
+    try:
 
-    result = feed.entries[0].summary_detail
+        feed = feedparser.parse('http://www.comicsyndicate.org/Feed/Penny%20Arcade')
 
-    soup = BeautifulSoup(result['value'])
+        result = feed.entries[0].summary_detail
 
-    comic = (soup.find("img")["src"])
+        soup = BeautifulSoup(result['value'])
 
-    title = (soup.find("img")["alt"])
+        comic = (soup.find("img")["src"])
 
-    link = (soup.find("a")["href"])
+        title = (soup.find("img")["alt"])
 
-    prehash = comic
+        link = (soup.find("a")["href"])
 
-    hash = hashlib.md5()
-    hash.update(prehash)
+        prehash = comic
 
-    comichash = hash.hexdigest()
+        hash = hashlib.md5()
+        hash.update(prehash)
+
+        comichash = hash.hexdigest()
+
+    except Exception, e:
+        return
 
     try:
         conn = MySQLdb.Connection(mysqlserver, mysqluser, mysqlpass, mysqldb)
