@@ -12,6 +12,8 @@ outputs = []
 slacktoken = config["SLACK_TOKEN"]
 botuser = config["BOT_USER"]
 
+authuser = config["AUTH_USER"]
+
 mysqlserver = config["MYSQL_SERVER"]
 mysqluser = config["MYSQL_USER"]
 mysqlpass = config["MYSQL_PASS"]
@@ -58,7 +60,28 @@ def process_message(data):
                         else:
                             enabledflag = ""
                         tablecomics.add_row([comics[0], enabledflag])
-                    outputs.append([data['channel'], "Here are a list of available comics:\n```" + str(tablecomics) + "```\nType the name of each comic you want to subscribe to as an individual message. Type the name again to unsubscribe."])
+                    outputs.append([data['channel'], "Here is a list of available comics:\n```" + str(tablecomics) + "```\nType the name of each comic you want to subscribe to as an individual message. Type the name again to unsubscribe."])
+                elif data['text'].startswith("feedback"):
+                    try:
+                        feedbackmessage = data['text'].split(' ', 1)[1]
+                        cmd = "INSERT INTO tbl_feedback (slackuser, message) VALUES (%s, %s);"
+                        curs.execute(cmd, ([data['user']], [feedbackmessage]))
+                        conn.commit()
+                        outputs.append([data['channel'], "Thanks for the feedback."])
+                    except Exception, e:
+                        outputs.append([data['channel'], "Please type `feedback` followed by your message."])
+                elif data['text'].startswith("announce") and data['user'] == authuser:
+                    announcelevel = "0"
+                    try:
+                        announcemessage = data['text'].split(' ', 1)[1]
+                        cmd = "INSERT INTO tbl_announcements (sender, message, level) VALUES (%s, %s, %s);"
+                        curs.execute(cmd, ([data['user']], [announcemessage], [announcelevel]))
+                        conn.commit()
+                        outputs.append([data['channel'], "Your announcement will be broadcast shortly."])
+                    except Exception, e:
+                        outputs.append([data['channel'], "Syntax error"])
+                elif data['text'] == "help":
+                    outputs.append([data['channel'], "Type `list` to view a list of available comics. You can subscribe to a comic by sending its name. Once subscribed, you'll receive the latest comic in a few minutes. If you change your mind, you can also unsubscribe by sending its name again. The `list` command will be updated to reflect which comics you are currently subscribed to.\n I should not be added to public or private chat rooms, but in the event I am, I will not talk. I've been designed to only talk in direct messages."])
                 else:
                     cmd = "SELECT * FROM tbl_comics WHERE comicname = %s"
                     curs.execute(cmd, ([data['text']]))

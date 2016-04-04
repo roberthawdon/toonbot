@@ -52,6 +52,22 @@ CREATE TABLE `tbl_comics` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `tbl_feedback`
+--
+
+DROP TABLE IF EXISTS `tbl_feedback`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `tbl_feedback` (
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
+  `slackuser` varchar(50) NOT NULL,
+  `message` text NOT NULL,
+  `sent` tinyint(1) DEFAULT '0',
+  PRIMARY KEY (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `tbl_subscriptions`
 --
 
@@ -140,4 +156,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2016-03-28 22:53:49
+-- Dump completed on 2016-04-02 17:02:58
