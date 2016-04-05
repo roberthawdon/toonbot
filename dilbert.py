@@ -1,15 +1,18 @@
 from __main__ import *
 import MySQLdb
-import feedparser
 import time
 import hashlib
 import random
+import urllib2
 from BeautifulSoup import BeautifulSoup
+from datetime import datetime, time, timedelta
+
+dateformat = '%Y-%m-%d'
 
 posttime = random.randint(180,600)
 
 crontable = []
-crontable.append([300, "update_data"])
+crontable.append([3600, "update_data"])
 crontable.append([posttime, "post_comic"])
 outputs = []
 
@@ -20,6 +23,10 @@ mysqldb = config["MYSQL_DB"]
 
 comictitle = "Dilbert"
 comicname = "dilbert"
+
+now = datetime.now()
+today = now.today()
+today_str = today.strftime(dateformat)
 
 try:
     conn = MySQLdb.Connection(mysqlserver, mysqluser, mysqlpass, mysqldb)
@@ -46,17 +53,21 @@ def update_data():
 
     try:
 
-        feed = feedparser.parse('http://www.comicsyndicate.org/Feed/Dilbert')
+        url = 'http://dilbert.com/strip/' + today_str
 
-        result = feed.entries[0].summary_detail
+        headers = { 'User-Agent' : 'Toonbot/1.0' }
 
-        soup = BeautifulSoup(result['value'])
+        req = urllib2.Request(url, None, headers)
 
-        comic = (soup.find("img")["src"])
+        site = urllib2.urlopen(req, timeout=10).read()
 
-        title = (soup.find("img")["alt"])
+        soup = BeautifulSoup(site)
 
-        link = (soup.find("a")["href"])
+        title = (soup.find("img", attrs={'class':'img-responsive img-comic'})["alt"])
+
+        comic = (soup.find("img", attrs={'class':'img-responsive img-comic'})["src"])
+
+        link = url
 
         prehash = comic
 
