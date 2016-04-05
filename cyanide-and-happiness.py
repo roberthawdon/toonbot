@@ -1,15 +1,15 @@
 from __main__ import *
 import MySQLdb
-import feedparser
 import time
 import hashlib
 import random
+import urllib2
 from BeautifulSoup import BeautifulSoup
 
 posttime = random.randint(180,600)
 
 crontable = []
-crontable.append([300, "update_data"])
+crontable.append([3600, "update_data"])
 crontable.append([posttime, "post_comic"])
 outputs = []
 
@@ -46,15 +46,19 @@ def update_data():
 
     try:
 
-        feed = feedparser.parse('http://www.comicsyndicate.org/Feed/Cyanide%20and%20Happiness')
+        url = 'http://explosm.net/comics/latest/'
 
-        result = feed.entries[0].summary_detail
+        headers = { 'User-Agent' : 'Toonbot/1.0' }
 
-        soup = BeautifulSoup(result['value'])
+        req = urllib2.Request(url, None, headers)
 
-        comic = (soup.find("img")["src"])
+        site = urllib2.urlopen(req, timeout=10).read()
 
-        link = (soup.find("a")["href"])
+        soup = BeautifulSoup(site)
+
+        comic = "http:" + (soup.find("img", attrs={'id':'main-comic'})["src"])
+
+        link = (soup.find("input", attrs={'id':'permalink'})["value"])
 
         prehash = comic
 
