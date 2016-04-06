@@ -60,7 +60,7 @@ def update_data():
 
         title = div.find("img")["alt"]
 
-        comic = div.find("img")["src"]
+        comic = "http:" + (div.find("img")["src"])
 
         text = div.find("img")["title"]
 
