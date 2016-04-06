@@ -24,10 +24,6 @@ mysqldb = config["MYSQL_DB"]
 comictitle = "Perry Bible Fellowship"
 comicname = "perry-bible-fellowship"
 
-now = datetime.now()
-today = now.today()
-today_str = today.strftime(dateformat)
-
 try:
     conn = MySQLdb.Connection(mysqlserver, mysqluser, mysqlpass, mysqldb)
     curs = conn.cursor()
@@ -50,6 +46,10 @@ finally:
         curs.close()
 
 def update_data():
+
+    now = datetime.now()
+    today = now.today()
+    today_str = today.strftime(dateformat)
 
     try:
 
