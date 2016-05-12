@@ -3,11 +3,14 @@ import MySQLdb
 import time
 import hashlib
 import random
-import urllib2
+import socket
+import feedparser
 from BeautifulSoup import BeautifulSoup
 from datetime import datetime, time, timedelta
 
-dateformat = '%Y-%m-%d'
+socket.setdefaulttimeout(10)
+
+dateformat = '%Y/%m/%d'
 
 posttime = random.randint(180,600)
 
@@ -21,8 +24,8 @@ mysqluser = config["MYSQL_USER"]
 mysqlpass = config["MYSQL_PASS"]
 mysqldb = config["MYSQL_DB"]
 
-comictitle = "Dilbert"
-comicname = "dilbert"
+comictitle = "Tales Of Mere Existence"
+comicname = "tales-of-mere-existence"
 
 try:
     conn = MySQLdb.Connection(mysqlserver, mysqluser, mysqlpass, mysqldb)
@@ -53,21 +56,15 @@ def update_data():
 
     try:
 
-        url = 'http://dilbert.com/strip/' + today_str
+        feed = feedparser.parse('http://levniyilmaz.tumblr.com/rss')
 
-        headers = { 'User-Agent' : 'Toonbot/1.0' }
+        result = feed.entries[0].summary_detail
 
-        req = urllib2.Request(url, None, headers)
+        soup = BeautifulSoup(result['value'])
 
-        site = urllib2.urlopen(req, timeout=10).read()
+        comic = (soup.find("img")["src"])
 
-        soup = BeautifulSoup(site)
-
-        title = (soup.find("a", attrs={'class':'img-comic-link'})["title"])
-
-        comic = (soup.find("img", attrs={'class':'img-responsive img-comic'})["src"])
-
-        link = url
+        link = feed.entries[0].link
 
         prehash = comic
 
@@ -86,8 +83,8 @@ def update_data():
         curs.execute(cmd, ([comichash]))
         result = curs.fetchall()
         if len(result) == 0:
-            cmd = "INSERT INTO tbl_comic_data (comichash, title, image, pageurl) VALUES (%s, %s, %s, %s)"
-            curs.execute(cmd, ([comichash], [title], [comic], [link]))
+            cmd = "INSERT INTO tbl_comic_data (comichash, image, pageurl) VALUES (%s, %s, %s)"
+            curs.execute(cmd, ([comichash], [comic], [link]))
             cmd = "UPDATE tbl_comics SET latest = %s WHERE comicname = %s"
             curs.execute(cmd, ([comichash], [comicname]))
             conn.commit()
@@ -112,20 +109,19 @@ def post_comic():
         for hash in result:
             currenthash = hash[0]
 
-        cmd = "SELECT image, pageurl, title FROM tbl_comic_data WHERE comichash = %s"
+        cmd = "SELECT image, pageurl FROM tbl_comic_data WHERE comichash = %s"
         curs.execute(cmd, ([currenthash]))
         result = curs.fetchall()
         for comicdata in result:
             image = comicdata[0]
             pageurl = comicdata[1]
-            title = comicdata[2]
 
         cmd = "SELECT U.slackuser, U.dmid, S.lastsent FROM tbl_subscriptions S LEFT OUTER JOIN tbl_users U ON U.slackuser = S.slackuser WHERE comicname = %s"
         curs.execute(cmd, ([comicname]))
         result = curs.fetchall()
         for subscribed in result:
             if subscribed[2] != currenthash:
-                outputs.append([subscribed[1], "*" + comictitle + "*\n_" + title + "_\n" + image])
+                outputs.append([subscribed[1], "*" + comictitle + "*\n" + image])
                 outputs.append([subscribed[1], "```" + pageurl + "```"])
                 cmd = "UPDATE tbl_subscriptions SET lastsent = %s WHERE slackuser = %s AND comicname = %s"
                 curs.execute(cmd, ([currenthash], [subscribed[0]], [comicname]))
