@@ -56,22 +56,31 @@ def update_data():
 
         soup = BeautifulSoup(site)
 
-        div = (soup.find("div", attrs={'id':'comic'}))
+        title = (soup.find("div", attrs={'id':'ctitle'})).next
 
-        title = div.find("img")["alt"]
+        try:
+            div = (soup.find("div", attrs={'id':'comic'}))
 
-        comic = "http:" + (div.find("img")["src"])
+            comic = "http:" + (div.find("img")["src"])
 
-        text = div.find("img")["title"]
+            text = div.find("img")["title"]
 
-        link = url
+            prehash = comic
 
-        prehash = comic
+        except Exception, e:
+
+            comic = "*Today's XKCD looks to be an interactive comic.*"
+
+            text = "_Please follow the link below to view it on the website._"
+
+            prehash = url
 
         hash = hashlib.md5()
         hash.update(prehash)
 
         comichash = hash.hexdigest()
+
+        link = url
 
     except Exception, e:
         return
