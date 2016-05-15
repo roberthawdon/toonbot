@@ -1,3 +1,17 @@
+# Toon Bot
+#
+#  _____   U  ___ u   U  ___ u  _   _           ____     U  ___ u _____
+# |_ " _|   \/"_ \/    \/"_ \/ | \ |"|       U | __")u    \/"_ \/|_ " _|
+#   | |     | | | |    | | | |<|  \| |>       \|  _ \/    | | | |  | |
+#  /| |\.-,_| |_| |.-,_| |_| |U| |\  |u        | |_) |.-,_| |_| | /| |\
+# u |_|U \_)-\___/  \_)-\___/  |_| \_|         |____/  \_)-\___/ u |_|U
+# _// \\_     \\         \\    ||   \\,-.     _|| \\_       \\   _// \\_
+# (__) (__)   (__)       (__)   (_")  (_/     (__) (__)     (__) (__) (__)
+#
+#                                   Providing 5 minute breaks since 2016
+#
+# By Robert Hawdon - https://robertianhawdon.me.uk/
+
 from __main__ import *
 import time
 import MySQLdb
@@ -22,7 +36,6 @@ mysqldb = config["MYSQL_DB"]
 
 
 def process_message(data):
-    #print data
     if data['type'] == "message" and data['channel'].startswith("D") and 'subtype' not in data and data['user'] != botuser:
         try:
             conn = MySQLdb.Connection(mysqlserver, mysqluser, mysqlpass, mysqldb)
@@ -31,18 +44,8 @@ def process_message(data):
             curs.execute(cmd, ([data['user']]))
             result = curs.fetchall()
             if len(result) == 0:
-                req = "https://slack.com/api/im.list?token=" + slacktoken
-                response = urllib2.urlopen(req)
-                jsonres = json.load(response)
-                dmid = []
-                slackuser = []
-                for dms in jsonres["ims"]:
-                    dmid.append(dms["id"])
-                    slackuser.append(dms["user"])
-                indexid = slackuser.index(data['user'])
-                dchannelid = dmid[indexid]
                 cmd = "INSERT INTO tbl_users (slackuser, dmid) values (%s, %s)"
-                curs.execute(cmd, ([data['user']], [dchannelid]))
+                curs.execute(cmd, ([data['user']], [data['channel']]))
                 conn.commit()
                 outputs.append([data['channel'], "Hello <@" + data['user'] + ">, I don't think we've met. Type `list` to show a list of available comics to get started."])
             else:

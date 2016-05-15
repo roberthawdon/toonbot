@@ -1,19 +1,52 @@
--- MySQL dump 10.13  Distrib 5.6.28, for debian-linux-gnu (x86_64)
+-- MySQL dump 10.15  Distrib 10.0.24-MariaDB, for debian-linux-gnu (x86_64)
 --
 -- Host: localhost    Database: toonbot
 -- ------------------------------------------------------
--- Server version	5.6.28-0ubuntu0.15.10.1
+-- Server version	10.0.24-MariaDB-7
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8 */;
+/*!40101 SET NAMES utf8mb4 */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `tbl_announcement_prefs`
+--
+
+DROP TABLE IF EXISTS `tbl_announcement_prefs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `tbl_announcement_prefs` (
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
+  `slackuser` varchar(50) NOT NULL,
+  `level` tinyint(1) DEFAULT '0',
+  PRIMARY KEY (`ID`),
+  UNIQUE KEY `slackuser` (`slackuser`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `tbl_announcements`
+--
+
+DROP TABLE IF EXISTS `tbl_announcements`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `tbl_announcements` (
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
+  `sender` varchar(50) NOT NULL,
+  `message` text NOT NULL,
+  `level` tinyint(1) DEFAULT NULL,
+  `sent` tinyint(1) DEFAULT '0',
+  PRIMARY KEY (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `tbl_comic_data`
@@ -45,6 +78,7 @@ DROP TABLE IF EXISTS `tbl_comics`;
 CREATE TABLE `tbl_comics` (
   `ID` int(11) NOT NULL AUTO_INCREMENT,
   `comicname` varchar(50) NOT NULL,
+  `displayname` varchar(50) NOT NULL,
   `latest` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`ID`),
   UNIQUE KEY `comicname` (`comicname`)
@@ -68,6 +102,32 @@ CREATE TABLE `tbl_feedback` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `tbl_migrations`
+--
+
+DROP TABLE IF EXISTS `tbl_migrations`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `tbl_migrations` (
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
+  `migration` varchar(18) NOT NULL,
+  `run` tinyint(1) DEFAULT NULL,
+  PRIMARY KEY (`ID`),
+  UNIQUE KEY `migration` (`migration`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `tbl_migrations`
+--
+
+LOCK TABLES `tbl_migrations` WRITE;
+/*!40000 ALTER TABLE `tbl_migrations` DISABLE KEYS */;
+INSERT INTO `tbl_migrations` VALUES (1,'20160413231214.sql',1),(2,'20160515162039.sql',1),(3,'20160515174722.sql',1);
+/*!40000 ALTER TABLE `tbl_migrations` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `tbl_subscriptions`
 --
 
@@ -86,6 +146,33 @@ CREATE TABLE `tbl_subscriptions` (
   CONSTRAINT `tbl_subscriptions_ibfk_2` FOREIGN KEY (`comicname`) REFERENCES `tbl_comics` (`comicname`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `tbl_system`
+--
+
+DROP TABLE IF EXISTS `tbl_system`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `tbl_system` (
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(32) NOT NULL,
+  `value` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`ID`),
+  UNIQUE KEY `name` (`name`),
+  KEY `idx_name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `tbl_system`
+--
+
+LOCK TABLES `tbl_system` WRITE;
+/*!40000 ALTER TABLE `tbl_system` DISABLE KEYS */;
+INSERT INTO `tbl_system` VALUES (1,'db_version','1.0'),(2,'db_latest_migration',NULL);
+/*!40000 ALTER TABLE `tbl_system` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `tbl_users`
@@ -156,4 +243,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2016-04-02 17:02:58
+-- Dump completed on 2016-05-15 18:45:46
