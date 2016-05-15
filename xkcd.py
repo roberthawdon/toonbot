@@ -4,6 +4,7 @@ import time
 import hashlib
 import random
 import urllib2
+import re
 from BeautifulSoup import BeautifulSoup
 
 crontable = []
@@ -77,7 +78,10 @@ def update_data():
 
         comichash = hash.hexdigest()
 
-        link = url
+        permlinkextract = (soup.body.findAll(text=re.compile('Permanent link to this comic')))
+        linktxt = re.search("(?P<url>https?://[^\s]+)", permlinkextract[0]).group("url")
+
+        link = linktxt
 
     except Exception, e:
         return
