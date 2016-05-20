@@ -28,6 +28,10 @@ def post_feedback():
     try:
         conn = MySQLdb.Connection(mysqlserver, mysqluser, mysqlpass, mysqldb)
         curs = conn.cursor()
+        conn.set_character_set('utf8')
+        curs.execute('SET NAMES utf8;')
+        curs.execute('SET CHARACTER SET utf8;')
+        curs.execute('SET character_set_connection=utf8;')
         cmd = "SELECT slackuser, message FROM tbl_feedback WHERE sent = 0"
         curs.execute(cmd)
         result = curs.fetchall()

@@ -56,7 +56,6 @@ def process_message(data):
                     cmd = "SELECT C.comicname, S.slackuser AS enabled FROM tbl_comics C LEFT JOIN tbl_subscriptions S ON S.comicname = C.comicname AND S.slackuser = %s"
                     curs.execute(cmd, ([data['user']]))
                     result = curs.fetchall()
-                    #comiclist = []
                     for comics in result:
                         if comics[1] == data['user']:
                             enabledflag = "Yes"
