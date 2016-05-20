@@ -24,6 +24,10 @@ def post_comics():
 
         conn = MySQLdb.Connection(mysqlserver, mysqluser, mysqlpass, mysqldb)
         curs = conn.cursor()
+        conn.set_character_set('utf8')
+        curs.execute('SET NAMES utf8;')
+        curs.execute('SET CHARACTER SET utf8;')
+        curs.execute('SET character_set_connection=utf8;')
         cmd = "SELECT comicname FROM tbl_comics"
         curs.execute(cmd)
         comicresult = curs.fetchall()
@@ -45,7 +49,13 @@ def post_comics():
                     image = comicdata[0]
                     pageurl = comicdata[1]
                     title = comicdata[2]
+                    if title:
+                        utitle = title.decode("utf-8")
+                        title = utitle.encode("ascii", "ignore")
                     text = comicdata[3]
+                    if text:
+                        utext = text.decode("utf-8")
+                        text = utext.encode("ascii", "ignore")
 
                 if title:
                     firstmsg = "*" + displayname + "*\n_" + title + "_\n" + image
