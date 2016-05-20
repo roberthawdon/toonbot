@@ -22,6 +22,10 @@ comicname = "xkcd"
 try:
     conn = MySQLdb.Connection(mysqlserver, mysqluser, mysqlpass, mysqldb)
     curs = conn.cursor()
+    conn.set_character_set('utf8')
+    curs.execute('SET NAMES utf8;')
+    curs.execute('SET CHARACTER SET utf8;')
+    curs.execute('SET character_set_connection=utf8;')
     cmd = "SELECT comicname FROM tbl_comics WHERE comicname = %s"
     curs.execute(cmd, ([comicname]))
     result = curs.fetchall()
@@ -89,6 +93,10 @@ def update_data():
     try:
         conn = MySQLdb.Connection(mysqlserver, mysqluser, mysqlpass, mysqldb)
         curs = conn.cursor()
+        conn.set_character_set('utf8')
+        curs.execute('SET NAMES utf8;')
+        curs.execute('SET CHARACTER SET utf8;')
+        curs.execute('SET character_set_connection=utf8;')
         cmd = "SELECT comichash FROM tbl_comic_data WHERE comichash = %s"
         curs.execute(cmd, ([comichash]))
         result = curs.fetchall()
