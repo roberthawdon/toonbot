@@ -73,6 +73,7 @@ def process_message(data):
                     except Exception, e:
                         outputs.append([data['channel'], "Please type `feedback` followed by your message."])
                 elif data['text'].startswith("announce") and data['user'] == authuser:
+                    # TO-DO: Implement announcement levels (Issue 26)
                     announcelevel = "0"
                     try:
                         announcemessage = data['text'].split(' ', 1)[1]
