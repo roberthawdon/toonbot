@@ -2,7 +2,7 @@
 A plugin for Slack's python-rtmbot to send web comics via direct messages.
 
 ## Install
-*Warning: These instructions are incomplete and will be refined as the project matures*
+**Warning: These instructions are incomplete and will be refined as the project matures**
 
 * Create a MySQL database and user for Toonbot.
 * Clone [python-rtmbot](https://github.com/slackhq/python-rtmbot) to a place on your server. _Follow the instructions there to configure it for your server._
@@ -18,7 +18,7 @@ A plugin for Slack's python-rtmbot to send web comics via direct messages.
 
 * `list` - This will show a list of available webcomics Toonbot can deliever to you. It will also indicate which comics you have already subscribed to.
 * `feedback` - This allows your users to send feedback to your Toonbot administrator.
-* `announce` - *Admin users only* can broadcast a message to all users using the service. Toonbot will queue these messages and notify you when the message has been delivered and how many users you've reached. Note: Toonbot will *not* send announcements to users who have either never interacted with the bot, never subscribed to a comic, or have unsubscribed from all the comics.
+* `announce` - **Admin users only** can broadcast a message to all users using the service. Toonbot will queue these messages and notify you when the message has been delivered and how many users you've reached. Note: Toonbot will **not** send announcements to users who have either never interacted with the bot, never subscribed to a comic, or have unsubscribed from all the comics.
 * `help` - Display a short help message for users.
 
 Anything else passed to Toonbot is treated as a request to either subscribe or unsubscribe to a comic, if no comic matches what was entered, Toonbot will display an error.
