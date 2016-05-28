@@ -26,7 +26,7 @@ def post_announcements():
         curs.execute('SET NAMES utf8;')
         curs.execute('SET CHARACTER SET utf8;')
         curs.execute('SET character_set_connection=utf8;')
-        cmd = "SELECT sender, message, level FROM tbl_announcements WHERE sent = 0"
+        cmd = "SELECT A.sender, A.message, A.level, U.dmid FROM `toonbot`.`tbl_announcements` A LEFT JOIN `toonbot`.`tbl_users` U ON A.sender = U.slackuser WHERE A.sent = 0"
         curs.execute(cmd)
         result = curs.fetchall()
         if len(result) != 0:
@@ -34,12 +34,19 @@ def post_announcements():
                 user = messages[0]
                 message = messages[1]
                 level = messages[2]
-                cmd = "SELECT U.dmid, P.level FROM tbl_users U LEFT JOIN tbl_announcement_prefs P ON P.slackuser = U.slackuser WHERE P.level <= %s OR P.level IS NULL;"
+                dmid = messages[3]
+                counter = 0
+                cmd = "SELECT DISTINCT U.dmid, P.level FROM tbl_users U LEFT JOIN tbl_announcement_prefs P ON P.slackuser = U.slackuser JOIN tbl_subscriptions S ON S.slackuser = U.slackuser WHERE P.level <= %s OR P.level IS NULL;"
                 curs.execute(cmd, ([level]))
                 result2 = curs.fetchall()
-                for recipients in result2:
-                    recipient = recipients[0]
-                    outputs.append([recipient, "*Announcement* from <@" + user + ">: " + message])
+                if len(result2) != 0:
+                    for recipients in result2:
+                        recipient = recipients[0]
+                        outputs.append([recipient, "*Announcement* from <@" + user + ">: " + message])
+                        counter = counter + 1
+                    outputs.append([dmid, "The following message was delivered to `" + str(counter) + "` user(s):\n>" + message])
+                else:
+                    outputs.append([dmid, "The following message was *not* delivered to anyone:\n>" + message])
                 cmd = "UPDATE tbl_announcements SET sent = 1 WHERE sent = 0"
                 curs.execute(cmd)
                 result2 = curs.fetchall()
