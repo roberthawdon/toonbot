@@ -26,21 +26,17 @@ outputs = []
 slacktoken = config["SLACK_TOKEN"]
 botuser = config["BOT_USER"]
 
-authuser = config["AUTH_USER"]
-
 mysqlserver = config["MYSQL_SERVER"]
 mysqluser = config["MYSQL_USER"]
 mysqlpass = config["MYSQL_PASS"]
 mysqldb = config["MYSQL_DB"]
-
-
 
 def process_message(data):
     if data['type'] == "message" and data['channel'].startswith("D") and 'subtype' not in data and data['user'] != botuser:
         try:
             conn = MySQLdb.Connection(mysqlserver, mysqluser, mysqlpass, mysqldb)
             curs = conn.cursor()
-            cmd = "SELECT * FROM tbl_users WHERE slackuser = %s"
+            cmd = "SELECT slackuser, dmid, admin FROM tbl_users WHERE slackuser = %s"
             curs.execute(cmd, ([data['user']]))
             result = curs.fetchall()
             if len(result) == 0:
@@ -49,6 +45,8 @@ def process_message(data):
                 conn.commit()
                 outputs.append([data['channel'], "Hello <@" + data['user'] + ">, I don't think we've met. Type `list` to show a list of available comics to get started."])
             else:
+                for users in result:
+                    admin = users[2]
                 if data['text'] == "list":
                     tablecomics = PrettyTable(["Comic", "Subscribed"])
                     tablecomics.align["Comic"] = "l"
@@ -72,7 +70,7 @@ def process_message(data):
                         outputs.append([data['channel'], "Thanks for the feedback."])
                     except Exception, e:
                         outputs.append([data['channel'], "Please type `feedback` followed by your message."])
-                elif data['text'].startswith("announce") and data['user'] == authuser:
+                elif data['text'].startswith("announce") and str(admin) == '1':
                     # TO-DO: Implement announcement levels (Issue 26)
                     announcelevel = "0"
                     try:
