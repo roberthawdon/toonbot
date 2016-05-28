@@ -11,8 +11,21 @@ A plugin for Slack's python-rtmbot to send web comics via direct messages.
 * Copy the example rtmbot.conf to the root of python-rtmbot.
 * Edit it filling in your MySQL database details as well as Slack details.
 * Switch to the db/base directory and import the database to MySQL.
-* Go up one level and run `./migrate.py` to update the database to the latest version.
+* Go up one level and run `./migrate.py` to update the database with any last minute changes.
 * Start rtmbot and talk to your Toonbot user on slack.
+
+## Upgrading
+
+**Please backup your database before upgrading**
+
+**Automatic upgrade instructions to be added at a later date**
+
+### Manual upgrade instructions
+* Stop python-rtmbot.
+* [Optional] Upgrade python-rtmbot.
+* Enter the plugins/toonbot directory and run `git pull`.
+* Enter the db directory and run `./migrate.py` to update the database.
+* Start python-rtmbot
 
 ## Commands
 
@@ -37,4 +50,10 @@ The following can be called to remove a comic and unsubscribe users from it:
 
 ```mysql
 CALL delete_comic('comicname');
+```
+
+The following can be run to upgrade a user to an admin:
+
+```mysql
+CALL make_admin('U12345678');
 ```
