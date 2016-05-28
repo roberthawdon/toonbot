@@ -13,7 +13,7 @@ from warnings import filterwarnings
 
 filterwarnings('ignore', category = MySQLdb.Warning)
 
-print "Toon Bot data migration V1.2"
+print "Toon Bot data migration V1.3"
 print "----------------------------"
 
 def parse_args():
@@ -54,11 +54,19 @@ for file in sorted(os.listdir("migrations")):
                 cmd = "INSERT IGNORE INTO tbl_migrations SET migration = %s"
                 curs.execute(cmd, ([file]))
                 conn.commit()
+                ignorestatement = False
                 statement = ""
                 for line in open("migrations/" + file):
+                    if line.startswith('DELIMITER'):
+                        if not ignorestatement:
+                            ignorestatement = True
+                            continue
+                        else:
+                            ignorestatement = False
+                            line = " ;"
                     if re.match(r'--', line):  # ignore sql comment lines
                         continue
-                    if not re.search(r'[^-;]+;', line):  # keep appending lines that don't end in ';'
+                    if not re.search(r'[^-;]+;', line) or ignorestatement:  # keep appending lines that don't end in ';' or DELIMITER has been called
                         statement = statement + line
                     else:  # when you get a line ending in ';' then exec statement and reset for next statement
                         statement = statement + line
