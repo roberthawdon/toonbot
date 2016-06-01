@@ -53,6 +53,8 @@ def process_message(data):
                     announce(data, conn, curs)
                 elif data['text'] == "help":
                     help(data)
+                elif data['text'] == "about":
+                    about(data)
                 else:
                     comic_selector(data, conn, curs)
 
@@ -98,6 +100,9 @@ def comic_selector(data, conn, curs):
 
 def help(data):
     outputs.append([data['channel'], "Type `list` to view a list of available comics. You can subscribe to a comic by sending its name. Once subscribed, you'll receive the latest comic in a few minutes. If you change your mind, you can also unsubscribe by sending its name again. The `list` command will be updated to reflect which comics you are currently subscribed to.\n I should not be added to public or private chat rooms, but in the event I am, I will not talk. I've been designed to only talk in direct messages."])
+
+def about(data):
+    outputs.append([data['channel'], "*Toonbot*\n_Providing 5 minute breaks since 2016_\nWritten by Robert Hawdon\nhttps://github.com/roberthawdon/toonbot"])
 
 def announce(data, conn, curs):
     # TO-DO: Implement announcement levels (Issue 26)
