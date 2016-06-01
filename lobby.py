@@ -19,6 +19,7 @@ import sys
 import json
 import urllib2
 from prettytable import PrettyTable
+from checktimezone import checktimezone
 
 crontable = []
 outputs = []
@@ -69,6 +70,7 @@ def register(data, conn, curs):
     cmd = "INSERT INTO tbl_users (slackuser, dmid) values (%s, %s)"
     curs.execute(cmd, ([data['user']], [data['channel']]))
     conn.commit()
+    checktimezone(data['user'])
     outputs.append([data['channel'], "Hello <@" + data['user'] + ">, I don't think we've met. Type `list` to show a list of available comics to get started."])
 
 def comic_selector(data, conn, curs):

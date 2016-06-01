@@ -36,7 +36,7 @@ def post_announcements():
                 level = messages[2]
                 dmid = messages[3]
                 counter = 0
-                cmd = "SELECT DISTINCT U.dmid, P.level FROM tbl_users U LEFT JOIN tbl_announcement_prefs P ON P.slackuser = U.slackuser JOIN tbl_subscriptions S ON S.slackuser = U.slackuser WHERE P.level <= %s OR P.level IS NULL;"
+                cmd = "SELECT DISTINCT U.dmid, P.announcelevel FROM tbl_users U LEFT JOIN tbl_user_prefs P ON P.slackuser = U.slackuser JOIN tbl_subscriptions S ON S.slackuser = U.slackuser WHERE P.announcelevel <= %s OR P.announcelevel IS NULL;"
                 curs.execute(cmd, ([level]))
                 result2 = curs.fetchall()
                 if len(result2) != 0:
