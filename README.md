@@ -32,9 +32,13 @@ A plugin for Slack's python-rtmbot to send web comics via direct messages.
 * `list` - This will show a list of available webcomics Toonbot can deliever to you. It will also indicate which comics you have already subscribed to.
 * `feedback` - This allows your users to send feedback to your Toonbot administrator.
 * `announce` - **Admin users only** can broadcast a message to all users using the service. Toonbot will queue these messages and notify you when the message has been delivered and how many users you've reached. Note: Toonbot will **not** send announcements to users who have either never interacted with the bot, never subscribed to a comic, or have unsubscribed from all the comics.
+* `start` - Change the time the bot will start sending you comics, please use the following format `HH:MM:SS`. This is a 24 hour clock. This should be set to your local time as Toonbot uses the timezone you've set on your Slack profile to determine when it's best to send you comics.
+* `end` - Change the time the bot will stop sending you comics. Again, use the `HH:MM:SS` format when setting the time.
 * `help` - Display a short help message for users.
 
 Anything else passed to Toonbot is treated as a request to either subscribe or unsubscribe to a comic, if no comic matches what was entered, Toonbot will display an error.
+
+As mentioned earlier, Toonbot uses the timezone you've set on your Slack profile to determine when it's best to send you comics. If you change your timezone, please allow for Toonbot to update its cache, this generally happens overnight depending on where you're located. Changes for DST are not required as Slack sends updated timezone offsets.
 
 ## Stored procedures
 

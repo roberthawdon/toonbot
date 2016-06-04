@@ -18,6 +18,7 @@ import MySQLdb
 import sys
 import json
 import urllib2
+import re
 from prettytable import PrettyTable
 from checktimezone import checktimezone
 
@@ -55,6 +56,10 @@ def process_message(data):
                     help(data)
                 elif data['text'] == "about":
                     about(data)
+                elif data['text'].startswith("start"):
+                    setstarttime(data, conn, curs)
+                elif data['text'].startswith("end"):
+                    setendtime(data, conn, curs)
                 else:
                     comic_selector(data, conn, curs)
 
@@ -99,7 +104,7 @@ def comic_selector(data, conn, curs):
             outputs.append([data['channel'], "You are now unsubscribed from `" + data['text'] + "`."])
 
 def help(data):
-    outputs.append([data['channel'], "Type `list` to view a list of available comics. You can subscribe to a comic by sending its name. Once subscribed, you'll receive the latest comic in a few minutes. If you change your mind, you can also unsubscribe by sending its name again. The `list` command will be updated to reflect which comics you are currently subscribed to.\n I should not be added to public or private chat rooms, but in the event I am, I will not talk. I've been designed to only talk in direct messages."])
+    outputs.append([data['channel'], "Type `list` to view a list of available comics. You can subscribe to a comic by sending its name. Once subscribed, you'll receive the latest comic in a few minutes. If you change your mind, you can also unsubscribe by sending its name again. The `list` command will be updated to reflect which comics you are currently subscribed to.\nI should not be added to public or private chat rooms, but in the event I am, I will not talk. I've been designed to only talk in direct messages.\nI have been programmed to only post comics during working hours. If you'd like to change this, type `start HH:MM:SS` and `end HH:MM:SS` to adjust when I send comics to you."])
 
 def about(data):
     outputs.append([data['channel'], "*Toonbot*\n_Providing 5 minute breaks since 2016_\nWritten by Robert Hawdon\nhttps://github.com/roberthawdon/toonbot"])
@@ -140,3 +145,29 @@ def list(data, curs):
             enabledflag = ""
         tablecomics.add_row([comics[0], enabledflag])
     outputs.append([data['channel'], "Here is a list of available comics:\n```" + str(tablecomics) + "```\nType the name of each comic you want to subscribe to as an individual message. Type the name again to unsubscribe."])
+
+def setstarttime(data, conn, curs):
+    try:
+        timesetting = data['text'].split(' ', 1)[1]
+        if re.match(r'^([0-1]?[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])$', timesetting):
+            cmd = "INSERT IGNORE INTO tbl_user_prefs (slackuser, daystart) VALUES (%s, %s) ON DUPLICATE KEY UPDATE daystart = %s"
+            curs.execute(cmd, ([data['user']], [timesetting], [timesetting]))
+            conn.commit()
+            outputs.append([data['channel'], "OK, I won't post any comics until `" + timesetting + "`. If you find comics are being sent to you at incorrect times, ensure your timezone is correct on Slack."])
+        else:
+            outputs.append([data['channel'], "Sorry, didn't quite get that. Please specify the time in the `HH:MM:SS` format."])
+    except Exception, e:
+        outputs.append([data['channel'], "Please specify a time in the `HH:MM:SS` format."])
+
+def setendtime(data, conn, curs):
+    try:
+        timesetting = data['text'].split(' ', 1)[1]
+        if re.match(r'^([0-1]?[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])$', timesetting):
+            cmd = "INSERT IGNORE INTO tbl_user_prefs (slackuser, dayend) VALUES (%s, %s) ON DUPLICATE KEY UPDATE dayend = %s"
+            curs.execute(cmd, ([data['user']], [timesetting], [timesetting]))
+            conn.commit()
+            outputs.append([data['channel'], "OK, I won't post any comics after `" + timesetting + "`. If you find comics are being sent to you at incorrect times, ensure your timezone is correct on Slack."])
+        else:
+            outputs.append([data['channel'], "Sorry, didn't quite get that. Please specify the time in the `HH:MM:SS` format."])
+    except Exception, e:
+        outputs.append([data['channel'], "Please specify a time in the `HH:MM:SS` format."])
