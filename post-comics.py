@@ -1,6 +1,7 @@
 from __main__ import *
 import MySQLdb
 import random
+from checktime import workhourscheck
 
 posttime = random.randint(180, 600)
 
@@ -12,6 +13,29 @@ mysqlserver = config["MYSQL_SERVER"]
 mysqluser = config["MYSQL_USER"]
 mysqlpass = config["MYSQL_PASS"]
 mysqldb = config["MYSQL_DB"]
+
+try:
+    conn = MySQLdb.Connection(mysqlserver, mysqluser, mysqlpass, mysqldb)
+    curs = conn.cursor()
+    cmd = "SELECT name, value FROM tbl_system WHERE name = %s"
+    curs.execute(cmd, ["tb_daystart"])
+    result = curs.fetchall()
+    for starttime in result:
+        defaultstart = starttime[1]
+    curs.execute(cmd, ["tb_dayend"])
+    result = curs.fetchall()
+    for endtime in result:
+        defaultend = endtime[1]
+
+except curs.Error, e:
+
+    print "Error %d: %s" % (e.args[0], e.args[1])
+    sys.exit(1)
+
+finally:
+
+    if curs:
+        curs.close()
 
 def post_comics():
     try:
@@ -67,17 +91,25 @@ def post_comics():
                 else:
                     secondmsg = "```" + pageurl + "```"
 
-                cmd = "SELECT U.slackuser, U.dmid, S.lastsent FROM tbl_subscriptions S LEFT OUTER JOIN tbl_users U ON U.slackuser = S.slackuser WHERE comicname = %s"
+                cmd = "SELECT U.slackuser, U.dmid, P.daystart, P.dayend, U.tzoffset, S.lastsent FROM tbl_subscriptions S LEFT OUTER JOIN tbl_users U ON U.slackuser = S.slackuser LEFT OUTER JOIN tbl_user_prefs P ON U.slackuser = P.slackuser WHERE comicname = %s"
                 curs.execute(cmd, ([comicrun]))
                 result = curs.fetchall()
                 for subscribed in result:
-                    if subscribed[2] != currenthash:
-                        outputs.append([subscribed[1], firstmsg])
-                        outputs.append([subscribed[1], secondmsg])
-                        cmd = "UPDATE tbl_subscriptions SET lastsent = %s WHERE slackuser = %s AND comicname = %s"
-                        curs.execute(cmd, ([currenthash], [subscribed[0]], [comicrun]))
-                        result = curs.fetchall()
-                        conn.commit()
+                    starttime = subscribed[2]
+                    endtime = subscribed[3]
+                    if starttime is None:
+                        starttime = defaultstart
+                    if endtime is None:
+                        endtime = defaultend
+                    offset = subscribed[4]
+                    if subscribed[5] != currenthash:
+                        if workhourscheck(starttime, endtime, offset):
+                            outputs.append([subscribed[1], firstmsg])
+                            outputs.append([subscribed[1], secondmsg])
+                            cmd = "UPDATE tbl_subscriptions SET lastsent = %s WHERE slackuser = %s AND comicname = %s"
+                            curs.execute(cmd, ([currenthash], [subscribed[0]], [comicrun]))
+                            result = curs.fetchall()
+                            conn.commit()
 
     except curs.Error, e:
 
