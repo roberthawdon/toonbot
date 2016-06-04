@@ -97,11 +97,13 @@ def post_comics():
                 for subscribed in result:
                     starttime = subscribed[2]
                     endtime = subscribed[3]
+                    offset = subscribed[4]
                     if starttime is None:
                         starttime = defaultstart
                     if endtime is None:
                         endtime = defaultend
-                    offset = subscribed[4]
+                    if offset is None:
+                        offset = 0
                     if subscribed[5] != currenthash:
                         if workhourscheck(starttime, endtime, offset):
                             outputs.append([subscribed[1], firstmsg])
