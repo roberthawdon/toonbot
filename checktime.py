@@ -1,7 +1,7 @@
 from datetime import datetime
 from threading import Timer
 
-def checktime(target, tolerance):
+def runat(target, tolerance):
     runat = datetime.strptime(target, "%H:%M:%S" )
     x=datetime.utcnow()
     y=x.replace(day=x.day, hour=runat.hour, minute=runat.minute, second=runat.second, microsecond=0)

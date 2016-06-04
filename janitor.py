@@ -4,7 +4,7 @@ import json
 import urllib2
 import MySQLdb
 from datetime import datetime
-from checktime import checktime
+from checktime import runat
 from checktimezone import checktimezone
 
 runat = "02:05:30"
