@@ -23,10 +23,20 @@ def workhourscheck(starttime, endtime, tzoffset):
     lowertime = datetime.strptime(starttime, "%H:%M:%S")
     uppertime = datetime.strptime(endtime, "%H:%M:%S")
     lower = (lowertime-midnight).seconds-tzoffset
+    if lower < 0:
+        lower = lower+86400
     upper = (uppertime-midnight).seconds-tzoffset
+    if upper > 86400:
+        upper = upper-86400
     current = (currenttime-midnight).seconds
 
-    if current > lower and current < upper:
-        return True
+    if lower < upper:
+        if current > lower and current < upper:
+            return True
+        else:
+            return False
     else:
-        return False
+        if current > lower or current < upper:
+            return True
+        else:
+            return False
