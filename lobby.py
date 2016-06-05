@@ -60,6 +60,8 @@ def process_message(data):
                     setstarttime(data, conn, curs)
                 elif data['text'].startswith("end"):
                     setendtime(data, conn, curs)
+                elif data['text'] == "clear preferences":
+                    resetprefs(data, conn, curs)
                 else:
                     comic_selector(data, conn, curs)
 
@@ -104,7 +106,7 @@ def comic_selector(data, conn, curs):
             outputs.append([data['channel'], "You are now unsubscribed from `" + data['text'] + "`."])
 
 def help(data):
-    outputs.append([data['channel'], "Type `list` to view a list of available comics. You can subscribe to a comic by sending its name. Once subscribed, you'll receive the latest comic in a few minutes. If you change your mind, you can also unsubscribe by sending its name again. The `list` command will be updated to reflect which comics you are currently subscribed to.\nI should not be added to public or private chat rooms, but in the event I am, I will not talk. I've been designed to only talk in direct messages.\nI have been programmed to only post comics during working hours. If you'd like to change this, type `start HH:MM:SS` and `end HH:MM:SS` to adjust when I send comics to you."])
+    outputs.append([data['channel'], "Type `list` to view a list of available comics. You can subscribe to a comic by sending its name. Once subscribed, you'll receive the latest comic in a few minutes. If you change your mind, you can also unsubscribe by sending its name again. The `list` command will be updated to reflect which comics you are currently subscribed to.\nI should not be added to public or private chat rooms, but in the event I am, I will not talk. I've been designed to only talk in direct messages.\nI have been programmed to only post comics during working hours. If you'd like to change this, type `start HH:MM:SS` and `end HH:MM:SS` to adjust when I send comics to you.\nTo reset your preferences to the defaults, type `clear preferences`."])
 
 def about(data):
     outputs.append([data['channel'], "*Toonbot*\n_Providing 5 minute breaks since 2016_\nWritten by Robert Hawdon\nhttps://github.com/roberthawdon/toonbot"])
@@ -171,3 +173,9 @@ def setendtime(data, conn, curs):
             outputs.append([data['channel'], "Sorry, didn't quite get that. Please specify the time in the `HH:MM:SS` format."])
     except Exception, e:
         outputs.append([data['channel'], "Please specify a time in the `HH:MM:SS` format."])
+
+def resetprefs(data, conn, curs):
+    cmd = "DELETE FROM tbl_user_prefs WHERE slackuser = %s"
+    curs.execute(cmd, ([data['user']]))
+    conn.commit()
+    outputs.append([data['channel'], "Your preferences have been reset. Your subscriptions are unaffected."])
