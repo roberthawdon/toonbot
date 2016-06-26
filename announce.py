@@ -51,6 +51,7 @@ def post_announcements():
                 curs.execute(cmd)
                 result2 = curs.fetchall()
                 conn.commit()
+                time.sleep(1)
                 #announcementmsgs.append(name + " said: " + message)
             #announementmsgsstring = "\r\n".join(announcementmsgs)
 

@@ -1,6 +1,7 @@
 from __main__ import *
 import MySQLdb
 import random
+import time
 from checktime import workhourscheck
 
 posttime = random.randint(180, 600)
@@ -112,6 +113,7 @@ def post_comics():
                             curs.execute(cmd, ([currenthash], [subscribed[0]], [comicrun]))
                             result = curs.fetchall()
                             conn.commit()
+                            time.sleep(1)
 
     except curs.Error, e:
 

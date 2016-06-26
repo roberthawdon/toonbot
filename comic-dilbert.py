@@ -64,7 +64,7 @@ def update_data():
 
         soup = BeautifulSoup(site)
 
-        title = (soup.find("a", attrs={'class':'img-comic-link'})["title"])
+        title = (soup.find("img", attrs={'class':'img-responsive img-comic'})["alt"])
 
         comic = (soup.find("img", attrs={'class':'img-responsive img-comic'})["src"])
 
