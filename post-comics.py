@@ -2,7 +2,14 @@ from __main__ import *
 import MySQLdb
 import random
 import time
+import urllib2
+import json
+import os
+import os.path
+import subprocess
 from checktime import workhourscheck
+
+script_dirpath = os.path.dirname(os.path.join(os.getcwd(), __file__))
 
 posttime = random.randint(180, 600)
 
@@ -67,31 +74,6 @@ def post_comics():
                 displayname = comiclist[1]
 
             if currenthash:
-                cmd = "SELECT image, pageurl, title, text FROM tbl_comic_data WHERE comichash = %s"
-                curs.execute(cmd, ([currenthash]))
-                result = curs.fetchall()
-                for comicdata in result:
-                    image = comicdata[0]
-                    pageurl = comicdata[1]
-                    title = comicdata[2]
-                    if title:
-                        utitle = title.decode("utf-8")
-                        title = utitle.encode("ascii", "ignore")
-                    text = comicdata[3]
-                    if text:
-                        utext = text.decode("utf-8")
-                        text = utext.encode("ascii", "ignore")
-
-                if title:
-                    firstmsg = "*" + displayname + "*\n_" + title + "_\n" + image
-                else:
-                    firstmsg = "*" + displayname + "*\n" + image
-
-                if text:
-                    secondmsg = "> " + text + "\n```" + pageurl + "```"
-                else:
-                    secondmsg = "```" + pageurl + "```"
-
                 cmd = "SELECT U.slackuser, U.dmid, P.daystart, P.dayend, U.tzoffset, S.lastsent FROM tbl_subscriptions S LEFT OUTER JOIN tbl_users U ON U.slackuser = S.slackuser LEFT OUTER JOIN tbl_user_prefs P ON U.slackuser = P.slackuser WHERE comicname = %s"
                 curs.execute(cmd, ([comicrun]))
                 result = curs.fetchall()
@@ -107,13 +89,18 @@ def post_comics():
                         offset = 0
                     if subscribed[5] != currenthash:
                         if workhourscheck(starttime, endtime, offset):
-                            outputs.append([subscribed[1], firstmsg])
-                            outputs.append([subscribed[1], secondmsg])
+                            # outputs.append([subscribed[1], firstmsg])
+                            # outputs.append([subscribed[1], secondmsg])
+                            cmd = "INSERT INTO tbl_queue (slackuser, displayname, comichash) VALUES (%s, %s, %s)"
+                            curs.execute(cmd, ([subscribed[0]], [displayname], [currenthash]))
+                            result = curs.fetchall()
+                            conn.commit()
                             cmd = "UPDATE tbl_subscriptions SET lastsent = %s WHERE slackuser = %s AND comicname = %s"
                             curs.execute(cmd, ([currenthash], [subscribed[0]], [comicrun]))
                             result = curs.fetchall()
                             conn.commit()
-                            time.sleep(1)
+
+        subprocess.Popen(script_dirpath + '/subprocesses/post-queue.py')
 
     except curs.Error, e:
 
