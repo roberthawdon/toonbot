@@ -77,7 +77,7 @@ class PosterBot(object):
                     body = [{"title": title,"title_link": pageurl,"author_name": displayname,"image_url": image,"color": self.postcolor}]
 
                 data = body
-                print json.dumps(data)
+                #print json.dumps(data)
                 attachment = urllib.quote(str(json.dumps(data)))
                 url = "https://slack.com/api/chat.postMessage?token=" + self.token + "&channel=" + dmid + "&attachments=" + attachment + "&as_user=true&pretty=1"
                 req = urllib2.Request(url)

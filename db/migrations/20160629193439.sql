@@ -20,7 +20,8 @@ Database migration file
 Changelog:
 
 * Adding queue table for queueing up posts.
-* Upgrade database to v1.1
+* Rewrote delete_user stored procedure to allow removal of user if they have comics queued.
+* Upgrade database version to v1.1.
 
 */
 
@@ -34,5 +35,16 @@ CREATE TABLE `tbl_queue` (
   CONSTRAINT `tbl_queue_ibfk_1` FOREIGN KEY (`slackuser`) REFERENCES `tbl_users` (`slackuser`) ON UPDATE CASCADE,
   CONSTRAINT `tbl_queue_ibfk_2` FOREIGN KEY (`comichash`) REFERENCES `tbl_comic_data` (`comichash`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+DROP PROCEDURE IF EXISTS `delete_user`;
+DELIMITER ;;
+CREATE DEFINER=`toonbot`@`localhost` PROCEDURE `delete_user`(IN p_slack_user VARCHAR(50))
+BEGIN
+    DELETE FROM tbl_subscriptions WHERE slackuser = p_slack_user;
+    DELETE FROM tbl_user_prefs WHERE slackuser = p_slack_user;
+    DELETE FROM tbl_users WHERE slackuser = p_slack_user;
+    DELETE FROM tbl_queue WHERE slackuser = p_slack_user;
+END ;;
+DELIMITER ;
 
 UPDATE `tbl_system` SET `value` = '1.1' WHERE `name` = 'db_version';
