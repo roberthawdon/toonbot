@@ -36,6 +36,7 @@ A plugin for Slack's python-rtmbot to send web comics via direct messages.
 * `end` - Change the time the bot will stop sending you comics. Again, use the `HH:MM:SS` format when setting the time.
 * `clear preferences` - This will clear all your custom preferences resetting them to the defaults. This will not unsubscribe you from comics.
 * `help` - Display a short help message for users.
+* `version` - Show version info.
 
 Anything else passed to Toonbot is treated as a request to either subscribe or unsubscribe to a comic, if no comic matches what was entered, Toonbot will display an error.
 

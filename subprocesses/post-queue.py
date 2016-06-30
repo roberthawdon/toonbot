@@ -42,7 +42,7 @@ class PosterBot(object):
         curs.execute('SET NAMES utf8;')
         curs.execute('SET CHARACTER SET utf8;')
         curs.execute('SET character_set_connection=utf8;')
-        cmd = "SELECT Q.ID, Q.slackuser, Q.displayname, Q.comichash, Q.flags, U.dmid FROM tbl_queue Q LEFT JOIN tbl_users U ON U.slackuser = Q.slackuser"
+        cmd = "SELECT Q.ID, Q.slackuser, Q.displayname, Q.comichash, Q.flags, U.dmid FROM tbl_queue Q LEFT JOIN tbl_users U ON U.slackuser = Q.slackuser WHERE Q.sent = 0"
         curs.execute(cmd)
         result = curs.fetchall()
         for items in result:
@@ -79,7 +79,7 @@ class PosterBot(object):
                 data = body
                 #print json.dumps(data)
                 attachment = urllib.quote(str(json.dumps(data)))
-                url = "https://slack.com/api/chat.postMessage?token=" + self.token + "&channel=" + dmid + "&attachments=" + attachment + "&as_user=true&pretty=1"
+                url = "https://slack.com/api/chat.postMessage?token=" + self.token + "&channel=" + dmid + "&attachments=" + attachment + "&as_user=true"
                 req = urllib2.Request(url)
                 response = urllib2.urlopen(req)
                 # print response.read()
@@ -87,12 +87,18 @@ class PosterBot(object):
                 pageurl is None
                 title is None
                 text is None
+                jsonres = json.load(response)
+                if jsonres["ok"] is True:
+                    cmd = "UPDATE tbl_queue SET sent = 1 WHERE ID = %s"
+                    curs.execute(cmd, ([id]))
+                    conn.commit()
+                else:
+                    errormessage = jsonres["error"]
+                    cmd = "UPDATE tbl_queue SET flags = 1, errormessage = %s WHERE ID = %s"
+                    curs.execute(cmd, ([errormessage], [id]))
+                    conn.commit()
 
             time.sleep(1)
-            cmd = "DELETE FROM tbl_queue where ID = %s"
-            curs.execute(cmd, ([id]))
-            conn.commit()
-
 
 def parse_args():
     parser = ArgumentParser()

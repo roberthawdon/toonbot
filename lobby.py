@@ -19,6 +19,7 @@ import sys
 import json
 import urllib2
 import re
+from datetime import datetime
 from prettytable import PrettyTable
 from checktimezone import checktimezone
 
@@ -32,6 +33,9 @@ mysqlserver = config["MYSQL_SERVER"]
 mysqluser = config["MYSQL_USER"]
 mysqlpass = config["MYSQL_PASS"]
 mysqldb = config["MYSQL_DB"]
+
+botversion = "0.5.0-dev1"
+botcodename = "Code Name: Project Porky"
 
 def process_message(data):
     if data['type'] == "message" and data['channel'].startswith("D") and 'subtype' not in data and data['user'] != botuser:
@@ -62,6 +66,8 @@ def process_message(data):
                     setendtime(data, conn, curs)
                 elif data['text'] == "clear preferences":
                     resetprefs(data, conn, curs)
+                elif data['text'] == "version":
+                    showversion(data, curs)
                 else:
                     comic_selector(data, conn, curs)
 
@@ -179,3 +185,18 @@ def resetprefs(data, conn, curs):
     curs.execute(cmd, ([data['user']]))
     conn.commit()
     outputs.append([data['channel'], "Your preferences have been reset. Your subscriptions are unaffected."])
+
+def showversion(data, curs):
+    cmd = "SELECT value FROM tbl_system WHERE name = 'db_version'"
+    curs.execute(cmd)
+    result = curs.fetchall()
+    for verinfo in result:
+        dbversion = verinfo[0]
+    cmd = "SELECT value FROM tbl_system WHERE name = 'db_latest_migration'"
+    curs.execute(cmd)
+    result = curs.fetchall()
+    for verinfo in result:
+        dbrevisionraw = verinfo[0]
+    dbrevision = re.sub('\.sql$', '', dbrevisionraw)
+    dbrevisiondate = datetime.strptime(dbrevision, "%Y%m%d%H%M%S")
+    outputs.append([data['channel'], "Toonbot Version: " + botversion + " (" + botcodename + ")\nDatabase Version: " + dbversion + "\nDatabase Revision: " + dbrevisiondate.strftime('%a %d %b %Y at %H:%M:%S') + ""])
