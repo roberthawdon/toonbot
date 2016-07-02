@@ -19,6 +19,7 @@ import sys
 import json
 import urllib2
 import re
+from datetime import datetime
 from prettytable import PrettyTable
 from checktimezone import checktimezone
 
@@ -32,6 +33,9 @@ mysqlserver = config["MYSQL_SERVER"]
 mysqluser = config["MYSQL_USER"]
 mysqlpass = config["MYSQL_PASS"]
 mysqldb = config["MYSQL_DB"]
+
+botversion = "0.5.0"
+botcodename = "Porky Pig"
 
 def process_message(data):
     if data['type'] == "message" and data['channel'].startswith("D") and 'subtype' not in data and data['user'] != botuser:
@@ -60,8 +64,14 @@ def process_message(data):
                     setstarttime(data, conn, curs)
                 elif data['text'].startswith("end"):
                     setendtime(data, conn, curs)
+                elif data['text'].startswith("postcolour") or data['text'].startswith("postcolor"):
+                    setpostcolour(data, conn, curs)
+                elif data['text'].startswith("posttextcolour") or data['text'].startswith("posttextcolour"):
+                    setposttextcolour(data, conn, curs)
                 elif data['text'] == "clear preferences":
                     resetprefs(data, conn, curs)
+                elif data['text'] == "version":
+                    showversion(data, curs)
                 else:
                     comic_selector(data, conn, curs)
 
@@ -106,7 +116,7 @@ def comic_selector(data, conn, curs):
             outputs.append([data['channel'], "You are now unsubscribed from `" + data['text'] + "`."])
 
 def help(data):
-    outputs.append([data['channel'], "Type `list` to view a list of available comics. You can subscribe to a comic by sending its name. Once subscribed, you'll receive the latest comic in a few minutes. If you change your mind, you can also unsubscribe by sending its name again. The `list` command will be updated to reflect which comics you are currently subscribed to.\nI should not be added to public or private chat rooms, but in the event I am, I will not talk. I've been designed to only talk in direct messages.\nI have been programmed to only post comics during working hours. If you'd like to change this, type `start HH:MM:SS` and `end HH:MM:SS` to adjust when I send comics to you.\nTo reset your preferences to the defaults, type `clear preferences`."])
+    outputs.append([data['channel'], "Type `list` to view a list of available comics. You can subscribe to a comic by sending its name. Once subscribed, you'll receive the latest comic in a few minutes. If you change your mind, you can also unsubscribe by sending its name again. The `list` command will be updated to reflect which comics you are currently subscribed to.\nI should not be added to public or private chat rooms, but in the event I am, I will not talk. I've been designed to only talk in direct messages.\nI have been programmed to only post comics during working hours. If you'd like to change this, type `start HH:MM:SS` and `end HH:MM:SS` to adjust when I send comics to you.\nTo change the colour of the message sections you can use the `postcolour` and `posttextcolour` commands followed by a Hex colour code such as `#d3f6aa`.\nTo reset your preferences to the defaults, type `clear preferences` or clear spesific preferences by repacing the argument with `reset`."])
 
 def about(data):
     outputs.append([data['channel'], "*Toonbot*\n_Providing 5 minute breaks since 2016_\nWritten by Robert Hawdon\nhttps://github.com/roberthawdon/toonbot"])
@@ -156,10 +166,15 @@ def setstarttime(data, conn, curs):
             curs.execute(cmd, ([data['user']], [timesetting], [timesetting]))
             conn.commit()
             outputs.append([data['channel'], "OK, I won't post any comics until `" + timesetting + "`. If you find comics are being sent to you at incorrect times, ensure your timezone is correct on Slack."])
+        elif timesetting == 'reset':
+            cmd = "INSERT IGNORE INTO tbl_user_prefs (slackuser, daystart) VALUES (%s, %s) ON DUPLICATE KEY UPDATE daystart = %s"
+            curs.execute(cmd, ([data['user']], [None], [None]))
+            conn.commit()
+            outputs.append([data['channel'], "Your time setting has been reset."])
         else:
-            outputs.append([data['channel'], "Sorry, didn't quite get that. Please specify the time in the `HH:MM:SS` format."])
+            outputs.append([data['channel'], "Sorry, didn't quite get that. Please specify the time in the `HH:MM:SS` format or `reset` to set the start time to the default."])
     except Exception, e:
-        outputs.append([data['channel'], "Please specify a time in the `HH:MM:SS` format."])
+        outputs.append([data['channel'], "Please specify a time in the `HH:MM:SS` format or `reset`."])
 
 def setendtime(data, conn, curs):
     try:
@@ -169,13 +184,71 @@ def setendtime(data, conn, curs):
             curs.execute(cmd, ([data['user']], [timesetting], [timesetting]))
             conn.commit()
             outputs.append([data['channel'], "OK, I won't post any comics after `" + timesetting + "`. If you find comics are being sent to you at incorrect times, ensure your timezone is correct on Slack."])
+        elif timesetting == 'reset':
+            cmd = "INSERT IGNORE INTO tbl_user_prefs (slackuser, dayend) VALUES (%s, %s) ON DUPLICATE KEY UPDATE dayend = %s"
+            curs.execute(cmd, ([data['user']], [None], [None]))
+            conn.commit()
+            outputs.append([data['channel'], "Your time setting has been reset."])
         else:
-            outputs.append([data['channel'], "Sorry, didn't quite get that. Please specify the time in the `HH:MM:SS` format."])
+            outputs.append([data['channel'], "Sorry, didn't quite get that. Please specify the time in the `HH:MM:SS` format or `reset` to set the end time to the default."])
     except Exception, e:
-        outputs.append([data['channel'], "Please specify a time in the `HH:MM:SS` format."])
+        outputs.append([data['channel'], "Please specify a time in the `HH:MM:SS` format or `reset`."])
 
 def resetprefs(data, conn, curs):
     cmd = "DELETE FROM tbl_user_prefs WHERE slackuser = %s"
     curs.execute(cmd, ([data['user']]))
     conn.commit()
     outputs.append([data['channel'], "Your preferences have been reset. Your subscriptions are unaffected."])
+
+def showversion(data, curs):
+    cmd = "SELECT value FROM tbl_system WHERE name = 'db_version'"
+    curs.execute(cmd)
+    result = curs.fetchall()
+    for verinfo in result:
+        dbversion = verinfo[0]
+    cmd = "SELECT value FROM tbl_system WHERE name = 'db_latest_migration'"
+    curs.execute(cmd)
+    result = curs.fetchall()
+    for verinfo in result:
+        dbrevisionraw = verinfo[0]
+    dbrevision = re.sub('\.sql$', '', dbrevisionraw)
+    dbrevisiondate = datetime.strptime(dbrevision, "%Y%m%d%H%M%S")
+    outputs.append([data['channel'], "Toonbot Version: " + botversion + " (" + botcodename + ")\nDatabase Version: " + dbversion + "\nDatabase Revision: " + dbrevisiondate.strftime('%a %d %b %Y at %H:%M:%S') + ""])
+
+def setpostcolour(data, conn, curs):
+    try:
+        coloursetting = data['text'].split(' ', 1)[1]
+        if re.match(r'^#?0?[xX]?[0-9a-fA-F]{6}$', coloursetting):
+            hex_code = re.sub(r'^#?0?[xX]?', '', coloursetting)
+            cmd = "INSERT IGNORE INTO tbl_user_prefs (slackuser, postcolor) VALUES (%s, %s) ON DUPLICATE KEY UPDATE postcolor = %s"
+            curs.execute(cmd, ([data['user']], [hex_code], [hex_code]))
+            conn.commit()
+            outputs.append([data['channel'], "OK, I can do that for you."])
+        elif coloursetting == 'reset':
+            cmd = "INSERT IGNORE INTO tbl_user_prefs (slackuser, postcolor) VALUES (%s, %s) ON DUPLICATE KEY UPDATE postcolor = %s"
+            curs.execute(cmd, ([data['user']], [None], [None]))
+            conn.commit()
+            outputs.append([data['channel'], "Your colour setting has been reset."])
+        else:
+            outputs.append([data['channel'], "Sorry, I can't quite figure out what that colour is. Please pass it to me in a hex format, or `reset` to use the default."])
+    except Exception, e:
+        outputs.append([data['channel'], "Please tell me a colour in a hex format or `reset` to the default."])
+
+def setposttextcolour(data, conn, curs):
+    try:
+        coloursetting = data['text'].split(' ', 1)[1]
+        if re.match(r'^#?0?[xX]?[0-9a-fA-F]{6}$', coloursetting):
+            hex_code = re.sub(r'^#?0?[xX]?', '', coloursetting)
+            cmd = "INSERT IGNORE INTO tbl_user_prefs (slackuser, posttextcolor) VALUES (%s, %s) ON DUPLICATE KEY UPDATE posttextcolor = %s"
+            curs.execute(cmd, ([data['user']], [hex_code], [hex_code]))
+            conn.commit()
+            outputs.append([data['channel'], "OK, I can do that for you."])
+        elif coloursetting == 'reset':
+            cmd = "INSERT IGNORE INTO tbl_user_prefs (slackuser, posttextcolor) VALUES (%s, %s) ON DUPLICATE KEY UPDATE posttextcolor = %s"
+            curs.execute(cmd, ([data['user']], [None], [None]))
+            conn.commit()
+            outputs.append([data['channel'], "Your colour setting has been reset."])
+        else:
+            outputs.append([data['channel'], "Sorry, I can't quite figure out what that colour is. Please pass it to me in a hex format, or `reset` to use the default."])
+    except Exception, e:
+        outputs.append([data['channel'], "Please tell me a colour in a hex format or `reset` to the default."])
