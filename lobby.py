@@ -34,8 +34,8 @@ mysqluser = config["MYSQL_USER"]
 mysqlpass = config["MYSQL_PASS"]
 mysqldb = config["MYSQL_DB"]
 
-botversion = "0.5.0-alpha1"
-botcodename = "Code Name: Project Porky"
+botversion = "0.5.0"
+botcodename = "Porky Pig"
 
 def process_message(data):
     if data['type'] == "message" and data['channel'].startswith("D") and 'subtype' not in data and data['user'] != botuser:
