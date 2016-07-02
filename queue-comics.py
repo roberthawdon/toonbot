@@ -14,7 +14,7 @@ script_dirpath = os.path.dirname(os.path.join(os.getcwd(), __file__))
 posttime = random.randint(180, 600)
 
 crontable = []
-crontable.append([posttime, "post_comics"])
+crontable.append([posttime, "queue_comics"])
 outputs = []
 
 mysqlserver = config["MYSQL_SERVER"]
@@ -45,7 +45,7 @@ finally:
     if curs:
         curs.close()
 
-def post_comics():
+def queue_comics():
     try:
         comicname = []
 
