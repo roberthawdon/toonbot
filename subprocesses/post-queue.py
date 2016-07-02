@@ -29,8 +29,8 @@ class PosterBot(object):
         self.mysqluser = config.get('MYSQL_USER')
         self.mysqlpass = config.get('MYSQL_PASS')
         self.mysqldb = config.get('MYSQL_DB')
-        self.postcolor = config.get('POST_COLOR')
-        self.posttextcolor = config.get('POST_TEXT_COLOR')
+        # self.postcolor = config.get('POST_COLOR')
+        # self.posttextcolor = config.get('POST_TEXT_COLOR')
 
         self.process_queue()
 
@@ -42,7 +42,17 @@ class PosterBot(object):
         curs.execute('SET NAMES utf8;')
         curs.execute('SET CHARACTER SET utf8;')
         curs.execute('SET character_set_connection=utf8;')
-        cmd = "SELECT Q.ID, Q.slackuser, Q.displayname, Q.comichash, Q.flags, U.dmid FROM tbl_queue Q LEFT JOIN tbl_users U ON U.slackuser = Q.slackuser WHERE Q.sent = 0"
+        cmd = "SELECT value FROM tbl_system WHERE name = 'postcolor'"
+        curs.execute(cmd)
+        result = curs.fetchall()
+        for color in result:
+            defaultpostcolor = color[0]
+        cmd = "SELECT value FROM tbl_system WHERE name = 'posttextcolor'"
+        curs.execute(cmd)
+        result = curs.fetchall()
+        for color in result:
+            defaultposttextcolor = color[0]
+        cmd = "SELECT Q.ID, Q.slackuser, Q.displayname, Q.comichash, Q.flags, U.dmid, P.postcolor, P.posttextcolor FROM tbl_queue Q LEFT JOIN tbl_users U ON U.slackuser = Q.slackuser LEFT JOIN tbl_user_prefs P ON P.slackuser = Q.slackuser WHERE Q.sent = 0"
         curs.execute(cmd)
         result = curs.fetchall()
         for items in result:
@@ -52,6 +62,16 @@ class PosterBot(object):
             comichash = items[3]
             flags = items[4]
             dmid = items[5]
+            userpostcolor = items[6]
+            if userpostcolor is not None:
+                postcolor = userpostcolor
+            else:
+                postcolor = defaultpostcolor
+            userposttextcolor = items[7]
+            if userposttextcolor is not None:
+                posttextcolor = userposttextcolor
+            else:
+                posttextcolor = defaultposttextcolor
 
             cmd = "SELECT image, pageurl, title, text FROM tbl_comic_data WHERE comichash = %s"
             curs.execute(cmd, ([comichash]))
@@ -72,9 +92,9 @@ class PosterBot(object):
                     title = displayname
 
                 if text is not None:
-                    body = [{"title": title,"title_link": pageurl,"author_name": displayname,"image_url": image,"color": self.postcolor}, {"text": text, "color": self.posttextcolor}]
+                    body = [{"title": title,"title_link": pageurl,"author_name": displayname,"image_url": image,"color": "#" + postcolor}, {"text": text, "color": "#" + posttextcolor}]
                 else:
-                    body = [{"title": title,"title_link": pageurl,"author_name": displayname,"image_url": image,"color": self.postcolor}]
+                    body = [{"title": title,"title_link": pageurl,"author_name": displayname,"image_url": image,"color": "#" + postcolor}]
 
                 data = body
                 #print json.dumps(data)
@@ -95,6 +115,8 @@ class PosterBot(object):
                 else:
                     errormessage = jsonres["error"]
                     cmd = "UPDATE tbl_queue SET flags = 1, errormessage = %s WHERE ID = %s"
+                    curs.execute(cmd, ([errormessage], [id]))
+                    cmd = "INSERT INTO tbl_queue_errors (errormessage, queueID) VALUES (%s, %s)"
                     curs.execute(cmd, ([errormessage], [id]))
                     conn.commit()
 

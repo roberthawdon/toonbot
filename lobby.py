@@ -34,7 +34,7 @@ mysqluser = config["MYSQL_USER"]
 mysqlpass = config["MYSQL_PASS"]
 mysqldb = config["MYSQL_DB"]
 
-botversion = "0.5.0-dev1"
+botversion = "0.5.0-dev2"
 botcodename = "Code Name: Project Porky"
 
 def process_message(data):
@@ -64,6 +64,10 @@ def process_message(data):
                     setstarttime(data, conn, curs)
                 elif data['text'].startswith("end"):
                     setendtime(data, conn, curs)
+                elif data['text'].startswith("postcolour") or data['text'].startswith("postcolor"):
+                    setpostcolour(data, conn, curs)
+                elif data['text'].startswith("posttextcolour") or data['text'].startswith("posttextcolour"):
+                    setposttextcolour(data, conn, curs)
                 elif data['text'] == "clear preferences":
                     resetprefs(data, conn, curs)
                 elif data['text'] == "version":
@@ -200,3 +204,31 @@ def showversion(data, curs):
     dbrevision = re.sub('\.sql$', '', dbrevisionraw)
     dbrevisiondate = datetime.strptime(dbrevision, "%Y%m%d%H%M%S")
     outputs.append([data['channel'], "Toonbot Version: " + botversion + " (" + botcodename + ")\nDatabase Version: " + dbversion + "\nDatabase Revision: " + dbrevisiondate.strftime('%a %d %b %Y at %H:%M:%S') + ""])
+
+def setpostcolour(data, conn, curs):
+    try:
+        coloursetting = data['text'].split(' ', 1)[1]
+        if re.match(r'^#?0?[xX]?[0-9a-fA-F]{6}$', coloursetting):
+            hex_code = re.sub(r'^#?0?[xX]?', '', coloursetting)
+            cmd = "INSERT IGNORE INTO tbl_user_prefs (slackuser, postcolor) VALUES (%s, %s) ON DUPLICATE KEY UPDATE postcolor = %s"
+            curs.execute(cmd, ([data['user']], [hex_code], [hex_code]))
+            conn.commit()
+            outputs.append([data['channel'], "OK, I can do that for you."])
+        else:
+            outputs.append([data['channel'], "Sorry, I can't quite figure out what that colour is. Please pass it to me in a hex format."])
+    except Exception, e:
+        outputs.append([data['channel'], "Please tell me a colour in a hex format."])
+
+def setposttextcolour(data, conn, curs):
+    try:
+        coloursetting = data['text'].split(' ', 1)[1]
+        if re.match(r'^#?0?[xX]?[0-9a-fA-F]{6}$', coloursetting):
+            hex_code = re.sub(r'^#?0?[xX]?', '', coloursetting)
+            cmd = "INSERT IGNORE INTO tbl_user_prefs (slackuser, posttextcolor) VALUES (%s, %s) ON DUPLICATE KEY UPDATE posttextcolor = %s"
+            curs.execute(cmd, ([data['user']], [hex_code], [hex_code]))
+            conn.commit()
+            outputs.append([data['channel'], "OK, I can do that for you."])
+        else:
+            outputs.append([data['channel'], "Sorry, I can't quite figure out what that colour is. Please pass it to me in a hex format."])
+    except Exception, e:
+        outputs.append([data['channel'], "Please tell me a colour in a hex format."])
