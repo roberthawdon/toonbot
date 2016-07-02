@@ -40,6 +40,8 @@ A plugin for Slack's python-rtmbot to send web comics via direct messages.
 * `help` - Display a short help message for users.
 * `version` - Show version info.
 
+Individual settings can be reset to defauls by passing `reset` as the argument.
+
 Anything else passed to Toonbot is treated as a request to either subscribe or unsubscribe to a comic, if no comic matches what was entered, Toonbot will display an error.
 
 As mentioned earlier, Toonbot uses the timezone you've set on your Slack profile to determine when it's best to send you comics. If you change your timezone, please allow for Toonbot to update its cache, this generally happens overnight depending on where you're located. Changes for DST are not required as Slack sends updated timezone offsets.
