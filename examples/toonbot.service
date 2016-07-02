@@ -1,0 +1,10 @@
+[Unit]
+Description=Toonbot
+
+[Service]
+Type=simple
+ExecStart=/opt/toonbot/toonbot.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

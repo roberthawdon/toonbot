@@ -28,27 +28,27 @@ def checktimezone(userid=None):
         conn = MySQLdb.Connection(mysqlserver, mysqluser, mysqlpass, mysqldb)
         curs = conn.cursor()
         if userid is None:
-                cmd = "SELECT slackuser, tzoffset FROM tbl_users"
-                curs.execute(cmd)
-                result = curs.fetchall()
-                tbslackusers = []
-                tbtzoffset = []
-                for toonusers in result:
-                    tbslackusers.append(toonusers[0])
-                    tbtzoffset.append(toonusers[1])
-                for user in tbslackusers:
-                    tbuseridx = tbslackusers.index(user)
-                    useridx = slackuser.index(user)
-                    if tbtzoffset[tbuseridx] != tzoffset[useridx]:
-                        try:
-                            cmd = "UPDATE tbl_users SET tzoffset = %s WHERE slackuser = %s"
-                            curs.execute(cmd, (tzoffset[useridx], user))
-                            result = curs.fetchall()
-                            conn.commit()
-                        except curs.Error, e:
+            cmd = "SELECT slackuser, tzoffset FROM tbl_users"
+            curs.execute(cmd)
+            result = curs.fetchall()
+            tbslackusers = []
+            tbtzoffset = []
+            for toonusers in result:
+                tbslackusers.append(toonusers[0])
+                tbtzoffset.append(toonusers[1])
+            for user in tbslackusers:
+                tbuseridx = tbslackusers.index(user)
+                useridx = slackuser.index(user)
+                if tbtzoffset[tbuseridx] != tzoffset[useridx]:
+                    try:
+                        cmd = "UPDATE tbl_users SET tzoffset = %s WHERE slackuser = %s"
+                        curs.execute(cmd, (tzoffset[useridx], user))
+                        result = curs.fetchall()
+                        conn.commit()
+                    except curs.Error, e:
 
-                            print "Error %d: %s" % (e.args[0], e.args[1])
-                            sys.exit(1)
+                        print "Error %d: %s" % (e.args[0], e.args[1])
+                        sys.exit(1)
 
         else:
             useridx = slackuser.index(userid)
@@ -56,7 +56,7 @@ def checktimezone(userid=None):
             curs.execute(cmd, (tzoffset[useridx], userid))
             result = curs.fetchall()
             conn.commit()
-            
+
     except curs.Error, e:
 
         print "Error %d: %s" % (e.args[0], e.args[1])

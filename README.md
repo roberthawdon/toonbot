@@ -34,8 +34,13 @@ A plugin for Slack's python-rtmbot to send web comics via direct messages.
 * `announce` - **Admin users only** can broadcast a message to all users using the service. Toonbot will queue these messages and notify you when the message has been delivered and how many users you've reached. Note: Toonbot will **not** send announcements to users who have either never interacted with the bot, never subscribed to a comic, or have unsubscribed from all the comics.
 * `start` - Change the time the bot will start sending you comics, please use the following format `HH:MM:SS`. This is a 24 hour clock. This should be set to your local time as Toonbot uses the timezone you've set on your Slack profile to determine when it's best to send you comics.
 * `end` - Change the time the bot will stop sending you comics. Again, use the `HH:MM:SS` format when setting the time.
+* `postcolour` - Change the colour of image attachments, please provide your colour in a hex format such as `#d3f6aa`.
+* `posttextcolor` - Changes the colour of the attachments containing supplementary text used by some comics. Again, provide the colour in a hex format.
 * `clear preferences` - This will clear all your custom preferences resetting them to the defaults. This will not unsubscribe you from comics.
 * `help` - Display a short help message for users.
+* `version` - Show version info.
+
+Individual settings can be reset to defauls by passing `reset` as the argument.
 
 Anything else passed to Toonbot is treated as a request to either subscribe or unsubscribe to a comic, if no comic matches what was entered, Toonbot will display an error.
 
