@@ -71,16 +71,16 @@ class FetcherBot(object):
                             curs.execute(cmd, ([comicname], [comictitle]))
                             conn.commit()
                         else:
-                            for comic in result:
-                                dbcomicname = comic[0]
-                                dbdisplayname = comic[1]
+                            for comiclist in result:
+                                dbcomicname = comiclist[0]
+                                dbdisplayname = comiclist[1]
                             if dbdisplayname != comictitle:
                                 cmd = "UPDATE tbl_comics SET displayname = %s WHERE comicname = %s"
                                 curs.execute(cmd, ([comictitle], [comicname]))
                                 conn.commit()
 
                     except curs.Error, e:
-                        print "Error %d: %s" % (e.args[0], e.args[1])
+                        print "Error 1 %d: %s" % (e.args[0], e.args[1])
                         sys.exit(1)
 
                     try:
