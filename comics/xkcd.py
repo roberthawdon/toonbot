@@ -6,15 +6,14 @@ import urllib2
 import re
 from BeautifulSoup import BeautifulSoup
 
-def fetch_comic():
+def fetch_comic(comicname, fetch_timeout):
     comictitle = "XKCD"
-    comicname = "xkcd"
 
     try:
         url = 'http://xkcd.com/'
         headers = { 'User-Agent' : 'Toonbot/1.0' }
         req = urllib2.Request(url, None, headers)
-        site = urllib2.urlopen(req, timeout=10).read()
+        site = urllib2.urlopen(req, timeout=fetch_timeout).read()
         soup = BeautifulSoup(site)
         title = (soup.find("div", attrs={'id':'ctitle'})).next
         try:

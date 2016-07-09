@@ -4,15 +4,14 @@ import random
 import urllib2
 from BeautifulSoup import BeautifulSoup
 
-def fetch_comic():
+def fetch_comic(comicname, fetch_timeout):
     comictitle = "Penny Arcade"
-    comicname = "penny-arcade"
 
     try:
         url = 'https://www.penny-arcade.com/comic/'
         headers = { 'User-Agent' : 'Toonbot/1.0' }
         req = urllib2.Request(url, None, headers)
-        site = urllib2.urlopen(req, timeout=10).read()
+        site = urllib2.urlopen(req, timeout=fetch_timeout).read()
         soup = BeautifulSoup(site)
         div = (soup.find("div", attrs={'id':'comicFrame'}))
         title = div.find("img")["alt"]
