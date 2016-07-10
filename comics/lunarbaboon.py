@@ -2,16 +2,20 @@
 import hashlib
 import random
 import socket
+import urllib2
 import feedparser
 from BeautifulSoup import BeautifulSoup
 from datetime import datetime, time, timedelta
 
-def fetch_comic():
+def fetch_comic(comicname, fetch_timeout):
     comictitle = "Lunarbaboon"
-    comicname = "lunarbaboon"
 
     try:
-        feed = feedparser.parse('http://www.lunarbaboon.com/comics/rss.xml')
+        url = 'http://www.lunarbaboon.com/comics/rss.xml'
+        headers = { 'User-Agent' : 'Toonbot/1.0' }
+        req = urllib2.Request(url, None, headers)
+        site = urllib2.urlopen(req, timeout=fetch_timeout).read()
+        feed = feedparser.parse(site)
         result = feed.entries[0].summary_detail
         soup = BeautifulSoup(result['value'])
         comic = (soup.find("img")["src"])

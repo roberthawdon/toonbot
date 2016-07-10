@@ -47,22 +47,43 @@ class FetcherBot(object):
         self.mysqlpass = config.get('MYSQL_PASS')
         self.mysqldb = config.get('MYSQL_DB')
 
+        try:
+            conn = MySQLdb.Connection(self.mysqlserver, self.mysqluser, self.mysqlpass, self.mysqldb)
+            curs = conn.cursor()
+            conn.set_character_set('utf8')
+            curs.execute('SET NAMES utf8;')
+            curs.execute('SET CHARACTER SET utf8;')
+            curs.execute('SET character_set_connection=utf8;')
+            cmd = "SELECT value FROM tbl_system WHERE name = 'fetch_timeout'"
+            curs.execute(cmd)
+            result = curs.fetchall()
+            for timeout in result:
+                default_timeout = timeout[0]
+
+        except curs.Error, e:
+            print "Error 1 %d: %s" % (e.args[0], e.args[1])
+            sys.exit(1)
+
         for file in os.listdir(comics_dirpath):
             if file.endswith(".py"):
                 modulename = re.sub(r'.py$', '', file)
                 sys.modules['comicmodule'] = __import__(modulename)
+                comicnamecode = modulename
+                cmd = "SELECT fetch_timeout FROM tbl_comics WHERE comicname = %s"
+                curs.execute(cmd, ([comicnamecode]))
+                result = curs.fetchall()
+                for timeout in result:
+                    comic_timeout = timeout[0]
+                    if comic_timeout is not None:
+                        timeout = comic_timeout
+                    else:
+                        timeout = int(default_timeout)
                 from comicmodule import fetch_comic
-                status, comichash, title, comic, text, link, comicname, comictitle = fetch_comic()
+                status, comichash, title, comic, text, link, comicname, comictitle = fetch_comic(comicnamecode, timeout)
                 del sys.modules['comicmodule']
 
                 if status is True:
                     try:
-                        conn = MySQLdb.Connection(self.mysqlserver, self.mysqluser, self.mysqlpass, self.mysqldb)
-                        curs = conn.cursor()
-                        conn.set_character_set('utf8')
-                        curs.execute('SET NAMES utf8;')
-                        curs.execute('SET CHARACTER SET utf8;')
-                        curs.execute('SET character_set_connection=utf8;')
                         cmd = "SELECT comicname, displayname FROM tbl_comics WHERE comicname = %s"
                         curs.execute(cmd, ([comicname]))
                         result = curs.fetchall()
@@ -98,9 +119,8 @@ class FetcherBot(object):
                         print "Error %d: %s" % (e.args[0], e.args[1])
                         sys.exit(1)
 
-                    finally:
-                        if curs:
-                            curs.close()
+        if curs:
+            curs.close()
 
 def parse_args():
     parser = ArgumentParser()
