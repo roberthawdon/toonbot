@@ -15,11 +15,11 @@ def fetch_comic(comicname, fetch_timeout):
         req = urllib2.Request(url, None, headers)
         site = urllib2.urlopen(req, timeout=fetch_timeout).read()
         soup = BeautifulSoup(site)
-        title = (soup.find("div", attrs={'id':'ctitle'})).next
+        title = (soup.find("div", attrs={'id':'ctitle'})).next.encode('utf8')
         try:
             div = (soup.find("div", attrs={'id':'comic'}))
-            comic = "http:" + (div.find("img")["src"])
-            text = div.find("img")["title"]
+            comic = "http:" + (div.find("img")["src"]).encode('utf8')
+            text = div.find("img")["title"].encode('utf8')
             prehash = comic
 
         except Exception, e:

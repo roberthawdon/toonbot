@@ -102,7 +102,7 @@ class FetcherBot(object):
 
                     except curs.Error, e:
                         print "Error 1 %d: %s" % (e.args[0], e.args[1])
-                        sys.exit(1)
+                        pass
 
                     try:
                         cmd = "SELECT comichash FROM tbl_comic_data WHERE comichash = %s"
@@ -117,7 +117,7 @@ class FetcherBot(object):
 
                     except curs.Error, e:
                         print "Error %d: %s" % (e.args[0], e.args[1])
-                        sys.exit(1)
+                        pass
 
         if curs:
             curs.close()
