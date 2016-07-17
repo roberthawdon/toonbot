@@ -19,9 +19,9 @@ def fetch_comic(comicname, fetch_timeout):
         feed = feedparser.parse(site)
         result = feed.entries[0].content[0]
         soup = BeautifulSoup(result['value'])
-        comic = (soup.find("img")["src"])
-        title = feed.entries[0].title
-        link = feed.entries[0].link
+        comic = (soup.find("img")["src"]).encode('utf8')
+        title = feed.entries[0].title.encode('utf8')
+        link = feed.entries[0].link.encode('utf8')
         prehash = comic
         hash = hashlib.md5()
         hash.update(prehash)
@@ -31,3 +31,4 @@ def fetch_comic(comicname, fetch_timeout):
 
     except Exception, e:
         return (False, None, None, None, None, None, comicname, comictitle)
+        

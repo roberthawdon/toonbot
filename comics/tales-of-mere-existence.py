@@ -18,8 +18,8 @@ def fetch_comic(comicname, fetch_timeout):
         feed = feedparser.parse(site)
         result = feed.entries[0].summary_detail
         soup = BeautifulSoup(result['value'])
-        comic = (soup.find("img")["src"])
-        link = feed.entries[0].link
+        comic = (soup.find("img")["src"]).encode('utf8')
+        link = feed.entries[0].link.encode('utf8')
         prehash = comic
         hash = hashlib.md5()
         hash.update(prehash)

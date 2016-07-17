@@ -20,8 +20,8 @@ def fetch_comic(comicname, fetch_timeout):
         req = urllib2.Request(url, None, headers)
         site = urllib2.urlopen(req, timeout=fetch_timeout).read()
         soup = BeautifulSoup(site)
-        title = (soup.find("img", attrs={'class':'img-responsive img-comic'})["alt"])
-        comic = (soup.find("img", attrs={'class':'img-responsive img-comic'})["src"])
+        title = (soup.find("img", attrs={'class':'img-responsive img-comic'})["alt"]).encode('utf8')
+        comic = (soup.find("img", attrs={'class':'img-responsive img-comic'})["src"]).encode('utf8')
         link = url
         prehash = comic
         hash = hashlib.md5()

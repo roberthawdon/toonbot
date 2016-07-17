@@ -34,7 +34,7 @@ mysqluser = config["MYSQL_USER"]
 mysqlpass = config["MYSQL_PASS"]
 mysqldb = config["MYSQL_DB"]
 
-botversion = "0.5.2"
+botversion = "0.5.3"
 botcodename = "Porky Pig"
 
 def process_message(data):
