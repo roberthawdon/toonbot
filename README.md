@@ -46,6 +46,8 @@ Anything else passed to Toonbot is treated as a request to either subscribe or u
 
 As mentioned earlier, Toonbot uses the timezone you've set on your Slack profile to determine when it's best to send you comics. If you change your timezone, please allow for Toonbot to update its cache, this generally happens overnight depending on where you're located. Changes for DST are not required as Slack sends updated timezone offsets.
 
+The feedback function can be disabled by adding changing the `FEEDBACK` setting in the rtmbot.conf file to `False`. If upgrading from an old version, this line will be absent. By default the bot assumes the feedback option should be enabled.
+
 ## Stored procedures
 
 It's currently impossible to totally stop using the service, or to remove a comic from the database if someone's subscribed to it.

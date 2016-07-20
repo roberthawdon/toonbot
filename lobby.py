@@ -34,7 +34,15 @@ mysqluser = config["MYSQL_USER"]
 mysqlpass = config["MYSQL_PASS"]
 mysqldb = config["MYSQL_DB"]
 
-botversion = "0.6.0-20160718dev"
+if 'FEEDBACK' in config:
+    if config["FEEDBACK"]:
+        feedbacksetting = True
+    else:
+        feedbacksetting = False
+else:
+    feedbacksetting = True
+
+botversion = "0.6.0-20160720dev"
 botcodename = "Project Daffy"
 
 def process_message(data):
@@ -52,7 +60,7 @@ def process_message(data):
                     admin = users[2]
                 if data['text'] == "list":
                     list(data, curs)
-                elif data['text'].startswith("feedback"):
+                elif data['text'].startswith("feedback") and feedbacksetting:
                     feedback(data, conn, curs)
                 elif data['text'].startswith("announce") and str(admin) == '1':
                     announce(data, conn, curs)
