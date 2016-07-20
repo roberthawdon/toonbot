@@ -5,6 +5,7 @@ import random
 import socket
 import urllib2
 import feedparser
+import re
 from BeautifulSoup import BeautifulSoup
 from datetime import datetime, time, timedelta
 
@@ -19,7 +20,7 @@ def fetch_comic(comicname, fetch_timeout):
         feed = feedparser.parse(site)
         result = feed.entries[0].content[0]
         soup = BeautifulSoup(result['value'])
-        comic = (soup.find("img", attrs={'class','size-full'})["src"]).encode('utf8')
+        comic = (soup.find("img", attrs={"class":re.compile("^alignnone size-full wp-image-")})["src"]).encode('utf8')
         title = feed.entries[0].title.encode('utf8')
         link = feed.entries[0].link.encode('utf8')
         prehash = comic
