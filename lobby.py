@@ -42,7 +42,7 @@ if 'FEEDBACK' in config:
 else:
     feedbacksetting = True
 
-botversion = "0.6.0-20160720dev"
+botversion = "0.6.0-20160721dev"
 botcodename = "Project Daffy"
 
 def process_message(data):
@@ -64,6 +64,8 @@ def process_message(data):
                     feedback(data, conn, curs)
                 elif data['text'].startswith("announce") and str(admin) == '1':
                     announce(data, conn, curs)
+                elif data['text'].startswith("makeadmin") and str(admin) == '1':
+                    promoteadmin(data, conn, curs)
                 elif data['text'] == "help":
                     help(data)
                 elif data['text'] == "about":
@@ -260,3 +262,46 @@ def setposttextcolour(data, conn, curs):
             outputs.append([data['channel'], "Sorry, I can't quite figure out what that colour is. Please pass it to me in a hex format, or `reset` to use the default."])
     except Exception, e:
         outputs.append([data['channel'], "Please tell me a colour in a hex format or `reset` to the default."])
+
+def promoteadmin(data, conn, curs):
+    try:
+        promoteuser = data['text'].split(' ', 1)[1]
+        req = "https://slack.com/api/users.list?token=" + slacktoken
+        response = urllib2.urlopen(req)
+        jsonres = json.load(response)
+        slackname = []
+        slackuser = []
+        slackbot = []
+        for members in jsonres["members"]:
+            slackname.append(members["name"])
+            slackuser.append(members["id"])
+            slackbot.append(members["is_bot"])
+        try:
+            indexid = slackname.index(promoteuser)
+        except Exception, e:
+            outputs.append([data['channel'], "Sorry, I can't find `" + promoteuser + "` on your team."])
+            indexid = None
+        if indexid is not None:
+            promoteuserid = slackuser[indexid]
+            cmd = "SELECT slackuser FROM tbl_users WHERE slackuser = %s;"
+            curs.execute(cmd, ([promoteuserid]))
+            result = curs.fetchall()
+            if not slackbot[indexid] and promoteuserid != "USLACKBOT" and promoteuser != botuser:
+                if len(result) == 0:
+                    outputs.append([data['channel'], "I have yet to meet <@" + promoteuserid + ">. Get them to talk to me before promoting them to admin."])
+                else:
+                    cmd = "UPDATE tbl_users SET admin = 1 WHERE slackuser = %s;"
+                    curs.execute(cmd, ([promoteuserid]))
+                    conn.commit()
+                    cmd = "SELECT dmid FROM tbl_users WHERE slackuser = %s;"
+                    curs.execute(cmd, ([promoteuserid]))
+                    result = curs.fetchall()
+                    for adminuser in result:
+                        promoteadmindm = adminuser[0]
+                    outputs.append([data['channel'], "I have given <@" + promoteuserid + "> admin privileges."])
+                    outputs.append([promoteadmindm, "You have been granted admin privileges."])
+            else:
+                outputs.append([data['channel'], "Sorry, I believe <@" + promoteuserid + "> to be a bot, so I will not grant this user admin privileges."])
+
+    except Exception, e:
+        print e
