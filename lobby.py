@@ -47,6 +47,7 @@ botcodename = "Project Daffy"
 
 def process_message(data):
     if data['type'] == "message" and data['channel'].startswith("D") and 'subtype' not in data and data['user'] != botuser:
+        data['text'] = data['text'].encode('utf8')
         try:
             conn = MySQLdb.Connection(mysqlserver, mysqluser, mysqlpass, mysqldb)
             curs = conn.cursor()
@@ -66,6 +67,8 @@ def process_message(data):
                     announce(data, conn, curs)
                 elif data['text'].startswith("makeadmin") and str(admin) == '1':
                     promoteadmin(data, conn, curs)
+                elif data['text'].startswith("revokeadmin") and str(admin) == '1':
+                    revokeadmin(data, conn, curs)
                 elif data['text'] == "help":
                     help(data)
                 elif data['text'] == "about":
@@ -283,25 +286,76 @@ def promoteadmin(data, conn, curs):
             indexid = None
         if indexid is not None:
             promoteuserid = slackuser[indexid]
-            cmd = "SELECT slackuser FROM tbl_users WHERE slackuser = %s;"
+            cmd = "SELECT slackuser, admin FROM tbl_users WHERE slackuser = %s;"
             curs.execute(cmd, ([promoteuserid]))
             result = curs.fetchall()
             if not slackbot[indexid] and promoteuserid != "USLACKBOT" and promoteuser != botuser:
                 if len(result) == 0:
                     outputs.append([data['channel'], "I have yet to meet <@" + promoteuserid + ">. Get them to talk to me before promoting them to admin."])
                 else:
-                    cmd = "UPDATE tbl_users SET admin = 1 WHERE slackuser = %s;"
-                    curs.execute(cmd, ([promoteuserid]))
-                    conn.commit()
-                    cmd = "SELECT dmid FROM tbl_users WHERE slackuser = %s;"
-                    curs.execute(cmd, ([promoteuserid]))
-                    result = curs.fetchall()
-                    for adminuser in result:
-                        promoteadmindm = adminuser[0]
-                    outputs.append([data['channel'], "I have given <@" + promoteuserid + "> admin privileges."])
-                    outputs.append([promoteadmindm, "You have been granted admin privileges."])
+                    for userinfo in result:
+                        admin = userinfo[1]
+                    if admin == 0:
+                        cmd = "UPDATE tbl_users SET admin = 1 WHERE slackuser = %s;"
+                        curs.execute(cmd, ([promoteuserid]))
+                        conn.commit()
+                        cmd = "SELECT dmid FROM tbl_users WHERE slackuser = %s;"
+                        curs.execute(cmd, ([promoteuserid]))
+                        result = curs.fetchall()
+                        for adminuser in result:
+                            promoteadmindm = adminuser[0]
+                        outputs.append([data['channel'], "I have given <@" + promoteuserid + "> admin privileges."])
+                        outputs.append([promoteadmindm, "You have been granted admin privileges."])
+                    else:
+                        outputs.append([data['channel'], "<@" + promoteuserid + "> already has admin privileges."])
             else:
                 outputs.append([data['channel'], "Sorry, I believe <@" + promoteuserid + "> to be a bot, so I will not grant this user admin privileges."])
+    except Exception, e:
+        print e
 
+def revokeadmin(data, conn, curs):
+    try:
+        revokeuser = data['text'].split(' ', 1)[1]
+        req = "https://slack.com/api/users.list?token=" + slacktoken
+        response = urllib2.urlopen(req)
+        jsonres = json.load(response)
+        slackname = []
+        slackuser = []
+        slackbot = []
+        for members in jsonres["members"]:
+            slackname.append(members["name"])
+            slackuser.append(members["id"])
+            slackbot.append(members["is_bot"])
+        try:
+            indexid = slackname.index(revokeuser)
+        except Exception, e:
+            outputs.append([data['channel'], "Sorry, I can't find `" + revokeuser + "` on your team."])
+            indexid = None
+        if indexid is not None:
+            revokeuserid = slackuser[indexid]
+            cmd = "SELECT slackuser, admin FROM tbl_users WHERE slackuser = %s;"
+            curs.execute(cmd, ([revokeuserid]))
+            result = curs.fetchall()
+            if not slackbot[indexid] and revokeuserid != "USLACKBOT" and revokeuser != botuser:
+                if len(result) == 0:
+                    outputs.append([data['channel'], "I haven't met <@" + revokeuserid + ">, so they do not have admin privileges."])
+                else:
+                    for userinfo in result:
+                        admin = userinfo[1]
+                    if admin == 1:
+                        cmd = "UPDATE tbl_users SET admin = 0 WHERE slackuser = %s;"
+                        curs.execute(cmd, ([revokeuserid]))
+                        conn.commit()
+                        cmd = "SELECT dmid FROM tbl_users WHERE slackuser = %s;"
+                        curs.execute(cmd, ([revokeuserid]))
+                        result = curs.fetchall()
+                        for adminuser in result:
+                            revokeadmindm = adminuser[0]
+                        outputs.append([data['channel'], "I removed <@" + revokeuserid + ">'s' admin privileges."])
+                        outputs.append([revokeadmindm, "Your admin privileges have been revoked."])
+                    else:
+                        outputs.append([data['channel'], "<@" + revokeuserid + "> is not currently an admin."])
+            else:
+                outputs.append([data['channel'], "Sorry, I believe <@" + revokeuserid + "> to be a bot, they can not admin privileges."])
     except Exception, e:
         print e
