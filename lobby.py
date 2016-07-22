@@ -39,6 +39,7 @@ botcodename = "Porky Pig"
 
 def process_message(data):
     if data['type'] == "message" and data['channel'].startswith("D") and 'subtype' not in data and data['user'] != botuser:
+        data['text'] = data['text'].encode('utf8')
         try:
             conn = MySQLdb.Connection(mysqlserver, mysqluser, mysqlpass, mysqldb)
             curs = conn.cursor()
