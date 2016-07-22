@@ -69,6 +69,8 @@ def process_message(data):
                     promoteadmin(data, conn, curs)
                 elif data['text'].startswith("revokeadmin") and str(admin) == '1':
                     revokeadmin(data, conn, curs)
+                elif data['text'] == "claimadmin":
+                    claimadmin(data, conn, curs, admin)
                 elif data['text'] == "help":
                     help(data)
                 elif data['text'] == "about":
@@ -305,7 +307,7 @@ def promoteadmin(data, conn, curs):
                         for adminuser in result:
                             promoteadmindm = adminuser[0]
                         outputs.append([data['channel'], "I have given <@" + promoteuserid + "> admin privileges."])
-                        outputs.append([promoteadmindm, "You have been granted admin privileges."])
+                        outputs.append([promoteadmindm, "You have been granted admin privileges by <@" + data['user'] + ">."])
                     else:
                         outputs.append([data['channel'], "<@" + promoteuserid + "> already has admin privileges."])
             else:
@@ -343,7 +345,7 @@ def revokeadmin(data, conn, curs):
                     for userinfo in result:
                         slackuser = userinfo[0]
                         admin = userinfo[1]
-                    if slackuser == revokeuserid:
+                    if data['user'] == revokeuserid:
                         outputs.append([data['channel'], "You cannot revoke your own admin privileges."])
                     elif admin == 1:
                         cmd = "UPDATE tbl_users SET admin = 0 WHERE slackuser = %s;"
@@ -355,10 +357,27 @@ def revokeadmin(data, conn, curs):
                         for adminuser in result:
                             revokeadmindm = adminuser[0]
                         outputs.append([data['channel'], "I removed <@" + revokeuserid + ">'s' admin privileges."])
-                        outputs.append([revokeadmindm, "Your admin privileges have been revoked."])
+                        outputs.append([revokeadmindm, "Your admin privileges have been revoked by <@" + data['user'] + ">."])
                     else:
                         outputs.append([data['channel'], "<@" + revokeuserid + "> is not currently an admin."])
             else:
                 outputs.append([data['channel'], "Sorry, I believe <@" + revokeuserid + "> to be a bot, they can not admin privileges."])
+    except Exception, e:
+        print e
+
+def claimadmin(data, conn, curs, admin):
+    try:
+        cmd = "SELECT slackuser, admin FROM tbl_users WHERE admin = 1;"
+        curs.execute(cmd)
+        result = curs.fetchall()
+        if len(result) == 0:
+            cmd = "UPDATE tbl_users SET admin = 1 WHERE slackuser = %s;"
+            curs.execute(cmd, ([data['user']]))
+            conn.commit()
+            outputs.append([data['channel'], "You are now the administrator, with great power comes great responsibility."])
+        elif str(admin) == "1":
+            outputs.append([data['channel'], "You are already an administrator, no need to claim admin access."])
+        else:
+            outputs.append([data['channel'], "Nice try. "])
     except Exception, e:
         print e
