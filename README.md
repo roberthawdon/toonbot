@@ -57,7 +57,7 @@ As mentioned earlier, Toonbot uses the timezone you've set on your Slack profile
 
 ### Notes on feedback function
 
-The feedback function can be disabled by adding changing the `FEEDBACK` setting in the rtmbot.conf file to `False`. If upgrading from an old version, this line will be absent. By default the bot assumes the feedback option should be enabled.
+The feedback function can be disabled by changing the `FEEDBACK` setting in the rtmbot.conf file to `False`. If upgrading from an old version, this line will be absent. By default the bot assumes the feedback option should be enabled.
 
 ## Stored procedures
 
