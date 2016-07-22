@@ -341,8 +341,11 @@ def revokeadmin(data, conn, curs):
                     outputs.append([data['channel'], "I haven't met <@" + revokeuserid + ">, so they do not have admin privileges."])
                 else:
                     for userinfo in result:
+                        slackuser = userinfo[0]
                         admin = userinfo[1]
-                    if admin == 1:
+                    if slackuser == revokeuserid:
+                        outputs.append([data['channel'], "You cannot revoke your own admin privileges."])
+                    elif admin == 1:
                         cmd = "UPDATE tbl_users SET admin = 0 WHERE slackuser = %s;"
                         curs.execute(cmd, ([revokeuserid]))
                         conn.commit()
