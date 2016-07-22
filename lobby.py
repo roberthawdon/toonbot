@@ -42,7 +42,7 @@ if 'FEEDBACK' in config:
 else:
     feedbacksetting = True
 
-botversion = "0.6.0-20160721dev"
+botversion = "0.6.0-20160722dev"
 botcodename = "Project Daffy"
 
 def process_message(data):
