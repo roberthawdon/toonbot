@@ -13,6 +13,7 @@ A plugin for Slack's python-rtmbot to send web comics via direct messages.
 * Switch to the db/base directory and import the database to MySQL.
 * Go up one level and run `./migrate.py` to update the database with any last minute changes.
 * Start rtmbot and talk to your Toonbot user on slack.
+* Say `claimadmin` to grant your user administrator privileges - **Note: Until this has been done, any user can promote themselves to Administrator**
 
 ## Upgrading
 
@@ -22,7 +23,7 @@ A plugin for Slack's python-rtmbot to send web comics via direct messages.
 
 ### Manual upgrade instructions
 * Stop python-rtmbot.
-* [Optional] Upgrade python-rtmbot.
+* [Optional] Upgrade python-rtmbot. (Highly recommended)
 * Enter the plugins/toonbot directory and run `git pull`.
 * Enter the db directory and run `./migrate.py` to update the database.
 * Start python-rtmbot
@@ -47,7 +48,7 @@ Anything else passed to Toonbot is treated as a request to either subscribe or u
 ## Administrator Commands
 
 * `makeadmin` - Running this command followed by the name of a user (without the @) will promote them to administrator status. They will receive a notification telling them this.
-* `revokeadmin` - Running this followed by the name of the user will revoke their admin permissions. They will be notified when this happens.
+* `revokeadmin` - Running this followed by the name of the user will revoke their admin permissions. They will be notified when this happens. **Note: You cannot revoke your own administrator privileges**
 * `announce` - Can broadcast a message to all users using the service. Toonbot will queue these messages and notify you when the message has been delivered and how many users you've reached. Note: Toonbot will **not** send announcements to users who have either never interacted with the bot, never subscribed to a comic, or have unsubscribed from all the comics.
 
 ### Notes on timezones
