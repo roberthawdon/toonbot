@@ -13,6 +13,7 @@ A plugin for Slack's python-rtmbot to send web comics via direct messages.
 * Switch to the db/base directory and import the database to MySQL.
 * Go up one level and run `./migrate.py` to update the database with any last minute changes.
 * Start rtmbot and talk to your Toonbot user on slack.
+* Say `claimadmin` to grant your user administrator privileges - **Note: Until this has been done, any user can promote themselves to Administrator**
 
 ## Upgrading
 
@@ -22,21 +23,21 @@ A plugin for Slack's python-rtmbot to send web comics via direct messages.
 
 ### Manual upgrade instructions
 * Stop python-rtmbot.
-* [Optional] Upgrade python-rtmbot.
+* [Optional] Upgrade python-rtmbot. (Highly recommended)
 * Enter the plugins/toonbot directory and run `git pull`.
 * Enter the db directory and run `./migrate.py` to update the database.
 * Start python-rtmbot
 
-## Commands
+## User Commands
 
 * `list` - This will show a list of available webcomics Toonbot can deliever to you. It will also indicate which comics you have already subscribed to.
 * `feedback` - This allows your users to send feedback to your Toonbot administrator.
-* `announce` - **Admin users only** can broadcast a message to all users using the service. Toonbot will queue these messages and notify you when the message has been delivered and how many users you've reached. Note: Toonbot will **not** send announcements to users who have either never interacted with the bot, never subscribed to a comic, or have unsubscribed from all the comics.
 * `start` - Change the time the bot will start sending you comics, please use the following format `HH:MM:SS`. This is a 24 hour clock. This should be set to your local time as Toonbot uses the timezone you've set on your Slack profile to determine when it's best to send you comics.
 * `end` - Change the time the bot will stop sending you comics. Again, use the `HH:MM:SS` format when setting the time.
 * `postcolour` - Change the colour of image attachments, please provide your colour in a hex format such as `#d3f6aa`.
 * `posttextcolor` - Changes the colour of the attachments containing supplementary text used by some comics. Again, provide the colour in a hex format.
 * `clear preferences` - This will clear all your custom preferences resetting them to the defaults. This will not unsubscribe you from comics.
+* `claimadmin` - This sets your user as an administrator if no other users are administrators. This should be run when first setting up the bot. Should someone else have claimed the first administrator user, the stored procedure further on will allow you to manually force your user to become administrator.
 * `help` - Display a short help message for users.
 * `version` - Show version info.
 
@@ -44,7 +45,19 @@ Individual settings can be reset to defauls by passing `reset` as the argument.
 
 Anything else passed to Toonbot is treated as a request to either subscribe or unsubscribe to a comic, if no comic matches what was entered, Toonbot will display an error.
 
+## Administrator Commands
+
+* `makeadmin` - Running this command followed by the name of a user (without the @) will promote them to administrator status. They will receive a notification telling them this.
+* `revokeadmin` - Running this followed by the name of the user will revoke their admin permissions. They will be notified when this happens. **Note: You cannot revoke your own administrator privileges**
+* `announce` - Can broadcast a message to all users using the service. Toonbot will queue these messages and notify you when the message has been delivered and how many users you've reached. Note: Toonbot will **not** send announcements to users who have either never interacted with the bot, never subscribed to a comic, or have unsubscribed from all the comics.
+
+### Notes on timezones
+
 As mentioned earlier, Toonbot uses the timezone you've set on your Slack profile to determine when it's best to send you comics. If you change your timezone, please allow for Toonbot to update its cache, this generally happens overnight depending on where you're located. Changes for DST are not required as Slack sends updated timezone offsets.
+
+### Notes on feedback function
+
+The feedback function can be disabled by changing the `FEEDBACK` setting in the rtmbot.conf file to `False`. If upgrading from an old version, this line will be absent. By default the bot assumes the feedback option should be enabled.
 
 ## Stored procedures
 
