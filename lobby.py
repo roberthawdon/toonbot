@@ -42,8 +42,8 @@ if 'FEEDBACK' in config:
 else:
     feedbacksetting = True
 
-botversion = "0.6.0-20160722dev"
-botcodename = "Project Daffy"
+botversion = "0.6.0"
+botcodename = "Daffy Duck"
 
 def process_message(data):
     if data['type'] == "message" and data['channel'].startswith("D") and 'subtype' not in data and data['user'] != botuser:
