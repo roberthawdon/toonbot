@@ -44,7 +44,8 @@ def post_announcements():
                         recipient = recipients[0]
                         outputs.append([recipient, "*Announcement* from <@" + user + ">: " + message])
                         counter = counter + 1
-                    outputs.append([dmid, "The following message was delivered to `" + str(counter) + "` user(s):\n>" + message])
+                    quotedmessage = message.replace('\n', '\n>')
+                    outputs.append([dmid, "The following message was delivered to `" + str(counter) + "` user(s):\n>" + quotedmessage])
                 else:
                     outputs.append([dmid, "The following message was *not* delivered to anyone:\n>" + message])
                 cmd = "UPDATE tbl_announcements SET sent = 1 WHERE sent = 0"

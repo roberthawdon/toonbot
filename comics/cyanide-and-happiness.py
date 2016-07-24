@@ -20,7 +20,10 @@ def fetch_comic(comicname, fetch_timeout):
         hash.update(prehash)
         comichash = hash.hexdigest()
         title = None
-        text = None
+        if "Thumbnail" in comic:
+            text = "To view this Cyanide and Happiness video, go to: " + link
+        else:
+            text = None
         return (True, comichash, title, comic, text, link, comicname, comictitle)
 
     except Exception, e:
