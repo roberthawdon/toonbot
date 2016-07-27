@@ -19,9 +19,18 @@ import sys
 import json
 import urllib2
 import re
+import os
 from datetime import datetime
 from prettytable import PrettyTable
 from checktimezone import checktimezone
+
+# Lobby Modules
+script_dirpath = os.path.dirname(os.path.join(os.getcwd(), __file__))
+lobby_dirpath = script_dirpath + '/lobby'
+sys.path.insert(0, lobby_dirpath)
+
+from admin_management import *
+from comic_selector import *
 
 crontable = []
 outputs = []
@@ -42,10 +51,11 @@ if 'FEEDBACK' in config:
 else:
     feedbacksetting = True
 
-botversion = "0.6.0"
-botcodename = "Daffy Duck"
+botversion = "0.7.0-dev"
+botcodename = "Project Lulu"
 
 def process_message(data):
+    lobby = None
     if data['type'] == "message" and data['channel'].startswith("D") and 'subtype' not in data and data['user'] != botuser:
         data['text'] = data['text'].encode('utf8')
         try:
@@ -66,11 +76,11 @@ def process_message(data):
                 elif data['text'].startswith("announce") and str(admin) == '1':
                     announce(data, conn, curs)
                 elif data['text'].startswith("makeadmin") and str(admin) == '1':
-                    promoteadmin(data, conn, curs)
+                    lobby = promoteadmin(data, conn, curs)
                 elif data['text'].startswith("revokeadmin") and str(admin) == '1':
-                    revokeadmin(data, conn, curs)
+                    lobby = revokeadmin(data, conn, curs)
                 elif data['text'] == "claimadmin":
-                    claimadmin(data, conn, curs, admin)
+                    lobby = claimadmin(data, conn, curs, admin)
                 elif data['text'] == "help":
                     help(data)
                 elif data['text'] == "about":
@@ -88,7 +98,14 @@ def process_message(data):
                 elif data['text'] == "version":
                     showversion(data, curs)
                 else:
-                    comic_selector(data, conn, curs)
+                    lobby = comic_selector(data, conn, curs)
+
+                if lobby is not None:
+                    outputs.append(lobby[0])
+                    del lobby[:]
+                else:
+                    outputs.append([data['channel'], "Something went wrong with the lobby module that deals with this command and I was not given anything to say."])
+
 
         except curs.Error, e:
 
@@ -106,29 +123,6 @@ def register(data, conn, curs):
     conn.commit()
     checktimezone(data['user'])
     outputs.append([data['channel'], "Hello <@" + data['user'] + ">, I don't think we've met. Type `list` to show a list of available comics to get started."])
-
-def comic_selector(data, conn, curs):
-    cmd = "SELECT * FROM tbl_comics WHERE comicname = %s"
-    curs.execute(cmd, ([data['text']]))
-    result = curs.fetchall()
-    if len(result) == 0:
-        outputs.append([data['channel'], "Sorry, I don't have a comic called `" + data['text'] + "` in my database."])
-    else:
-        cmd = "SELECT * FROM tbl_subscriptions WHERE comicname = %s AND slackuser = %s"
-        curs.execute(cmd, ([data['text'], [data['user']]]))
-        result = curs.fetchall()
-        if len(result) == 0:
-            cmd = "INSERT INTO tbl_subscriptions (comicname, slackuser) VALUES (%s, %s)"
-            curs.execute(cmd, ([data['text'], [data['user']]]))
-            conn.commit()
-            result = curs.fetchall()
-            outputs.append([data['channel'], "You are now subscribed to `" + data['text'] + "`."])
-        else:
-            cmd = "DELETE FROM tbl_subscriptions WHERE comicname = %s AND slackuser = %s"
-            curs.execute(cmd, ([data['text'], [data['user']]]))
-            conn.commit()
-            result = curs.fetchall()
-            outputs.append([data['channel'], "You are now unsubscribed from `" + data['text'] + "`."])
 
 def help(data):
     outputs.append([data['channel'], "Type `list` to view a list of available comics. You can subscribe to a comic by sending its name. Once subscribed, you'll receive the latest comic in a few minutes. If you change your mind, you can also unsubscribe by sending its name again. The `list` command will be updated to reflect which comics you are currently subscribed to.\nI should not be added to public or private chat rooms, but in the event I am, I will not talk. I've been designed to only talk in direct messages.\nI have been programmed to only post comics during working hours. If you'd like to change this, type `start HH:MM:SS` and `end HH:MM:SS` to adjust when I send comics to you.\nTo change the colour of the message sections you can use the `postcolour` and `posttextcolour` commands followed by a Hex colour code such as `#d3f6aa`.\nTo reset your preferences to the defaults, type `clear preferences` or clear spesific preferences by repacing the argument with `reset`."])
@@ -267,117 +261,3 @@ def setposttextcolour(data, conn, curs):
             outputs.append([data['channel'], "Sorry, I can't quite figure out what that colour is. Please pass it to me in a hex format, or `reset` to use the default."])
     except Exception, e:
         outputs.append([data['channel'], "Please tell me a colour in a hex format or `reset` to the default."])
-
-def promoteadmin(data, conn, curs):
-    try:
-        promoteuser = data['text'].split(' ', 1)[1]
-        req = "https://slack.com/api/users.list?token=" + slacktoken
-        response = urllib2.urlopen(req)
-        jsonres = json.load(response)
-        slackname = []
-        slackuser = []
-        slackbot = []
-        for members in jsonres["members"]:
-            slackname.append(members["name"])
-            slackuser.append(members["id"])
-            slackbot.append(members["is_bot"])
-        try:
-            indexid = slackname.index(promoteuser)
-        except Exception, e:
-            outputs.append([data['channel'], "Sorry, I can't find `" + promoteuser + "` on your team."])
-            indexid = None
-        if indexid is not None:
-            promoteuserid = slackuser[indexid]
-            cmd = "SELECT slackuser, admin FROM tbl_users WHERE slackuser = %s;"
-            curs.execute(cmd, ([promoteuserid]))
-            result = curs.fetchall()
-            if not slackbot[indexid] and promoteuserid != "USLACKBOT" and promoteuser != botuser:
-                if len(result) == 0:
-                    outputs.append([data['channel'], "I have yet to meet <@" + promoteuserid + ">. Get them to talk to me before promoting them to admin."])
-                else:
-                    for userinfo in result:
-                        admin = userinfo[1]
-                    if admin == 0:
-                        cmd = "UPDATE tbl_users SET admin = 1 WHERE slackuser = %s;"
-                        curs.execute(cmd, ([promoteuserid]))
-                        conn.commit()
-                        cmd = "SELECT dmid FROM tbl_users WHERE slackuser = %s;"
-                        curs.execute(cmd, ([promoteuserid]))
-                        result = curs.fetchall()
-                        for adminuser in result:
-                            promoteadmindm = adminuser[0]
-                        outputs.append([data['channel'], "I have given <@" + promoteuserid + "> admin privileges."])
-                        outputs.append([promoteadmindm, "You have been granted admin privileges by <@" + data['user'] + ">."])
-                    else:
-                        outputs.append([data['channel'], "<@" + promoteuserid + "> already has admin privileges."])
-            else:
-                outputs.append([data['channel'], "Sorry, I believe <@" + promoteuserid + "> to be a bot, so I will not grant this user admin privileges."])
-    except Exception, e:
-        print e
-
-def revokeadmin(data, conn, curs):
-    try:
-        revokeuser = data['text'].split(' ', 1)[1]
-        req = "https://slack.com/api/users.list?token=" + slacktoken
-        response = urllib2.urlopen(req)
-        jsonres = json.load(response)
-        slackname = []
-        slackuser = []
-        slackbot = []
-        for members in jsonres["members"]:
-            slackname.append(members["name"])
-            slackuser.append(members["id"])
-            slackbot.append(members["is_bot"])
-        try:
-            indexid = slackname.index(revokeuser)
-        except Exception, e:
-            outputs.append([data['channel'], "Sorry, I can't find `" + revokeuser + "` on your team."])
-            indexid = None
-        if indexid is not None:
-            revokeuserid = slackuser[indexid]
-            cmd = "SELECT slackuser, admin FROM tbl_users WHERE slackuser = %s;"
-            curs.execute(cmd, ([revokeuserid]))
-            result = curs.fetchall()
-            if not slackbot[indexid] and revokeuserid != "USLACKBOT" and revokeuser != botuser:
-                if len(result) == 0:
-                    outputs.append([data['channel'], "I haven't met <@" + revokeuserid + ">, so they do not have admin privileges."])
-                else:
-                    for userinfo in result:
-                        slackuser = userinfo[0]
-                        admin = userinfo[1]
-                    if data['user'] == revokeuserid:
-                        outputs.append([data['channel'], "You cannot revoke your own admin privileges."])
-                    elif admin == 1:
-                        cmd = "UPDATE tbl_users SET admin = 0 WHERE slackuser = %s;"
-                        curs.execute(cmd, ([revokeuserid]))
-                        conn.commit()
-                        cmd = "SELECT dmid FROM tbl_users WHERE slackuser = %s;"
-                        curs.execute(cmd, ([revokeuserid]))
-                        result = curs.fetchall()
-                        for adminuser in result:
-                            revokeadmindm = adminuser[0]
-                        outputs.append([data['channel'], "I removed <@" + revokeuserid + ">'s' admin privileges."])
-                        outputs.append([revokeadmindm, "Your admin privileges have been revoked by <@" + data['user'] + ">."])
-                    else:
-                        outputs.append([data['channel'], "<@" + revokeuserid + "> is not currently an admin."])
-            else:
-                outputs.append([data['channel'], "Sorry, I believe <@" + revokeuserid + "> to be a bot, they can not admin privileges."])
-    except Exception, e:
-        print e
-
-def claimadmin(data, conn, curs, admin):
-    try:
-        cmd = "SELECT slackuser, admin FROM tbl_users WHERE admin = 1;"
-        curs.execute(cmd)
-        result = curs.fetchall()
-        if len(result) == 0:
-            cmd = "UPDATE tbl_users SET admin = 1 WHERE slackuser = %s;"
-            curs.execute(cmd, ([data['user']]))
-            conn.commit()
-            outputs.append([data['channel'], "You are now the administrator, with great power comes great responsibility."])
-        elif str(admin) == "1":
-            outputs.append([data['channel'], "You are already an administrator, no need to claim admin access."])
-        else:
-            outputs.append([data['channel'], "Nice try. "])
-    except Exception, e:
-        print e
