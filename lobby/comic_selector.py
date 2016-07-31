@@ -6,6 +6,7 @@ import sys
 import json
 import urllib2
 import re
+from prettytable import PrettyTable
 
 outputs = []
 
@@ -16,6 +17,22 @@ mysqlserver = config["MYSQL_SERVER"]
 mysqluser = config["MYSQL_USER"]
 mysqlpass = config["MYSQL_PASS"]
 mysqldb = config["MYSQL_DB"]
+
+def list(data, curs):
+    tablecomics = PrettyTable(["Comic", "Subscribed"])
+    tablecomics.align["Comic"] = "l"
+    tablecomics.padding_width = 1
+    cmd = "SELECT C.comicname, S.slackuser AS enabled FROM tbl_comics C LEFT JOIN tbl_subscriptions S ON S.comicname = C.comicname AND S.slackuser = %s"
+    curs.execute(cmd, ([data['user']]))
+    result = curs.fetchall()
+    for comics in result:
+        if comics[1] == data['user']:
+            enabledflag = "Yes"
+        else:
+            enabledflag = ""
+        tablecomics.add_row([comics[0], enabledflag])
+    outputs.append([data['channel'], "Here is a list of available comics:\n```" + str(tablecomics) + "```\nType the name of each comic you want to subscribe to as an individual message. Type the name again to unsubscribe."])
+    return outputs
 
 def comic_selector(data, conn, curs):
     cmd = "SELECT * FROM tbl_comics WHERE comicname = %s"
