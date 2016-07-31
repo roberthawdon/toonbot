@@ -83,6 +83,7 @@ class FetcherBot(object):
                 del sys.modules['comicmodule']
 
                 if status is True:
+                    currenttime = datetime.utcnow()
                     try:
                         cmd = "SELECT comicname, displayname FROM tbl_comics WHERE comicname = %s"
                         curs.execute(cmd, ([comicname]))
@@ -109,10 +110,10 @@ class FetcherBot(object):
                         curs.execute(cmd, ([comichash]))
                         result = curs.fetchall()
                         if len(result) == 0:
-                            cmd = "INSERT INTO tbl_comic_data (comichash, title, image, text, pageurl) VALUES (%s, %s, %s, %s, %s)"
-                            curs.execute(cmd, ([comichash], [title], [comic], [text], [link]))
-                            cmd = "UPDATE tbl_comics SET latest = %s WHERE comicname = %s"
-                            curs.execute(cmd, ([comichash], [comicname]))
+                            cmd = "INSERT INTO tbl_comic_data (comichash, title, image, text, pageurl, fetchtime) VALUES (%s, %s, %s, %s, %s, %s)"
+                            curs.execute(cmd, ([comichash], [title], [comic], [text], [link], [currenttime]))
+                            cmd = "UPDATE tbl_comics SET latest = %s, lastfetched = %s WHERE comicname = %s"
+                            curs.execute(cmd, ([comichash], [currenttime], [comicname]))
                             conn.commit()
 
                     except curs.Error, e:
