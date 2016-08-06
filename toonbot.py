@@ -98,6 +98,8 @@ def process_message(data):
                     lobby = setposttextcolour(data, conn, curs)
                 elif data['text'] == "clear preferences":
                     lobby = resetprefs(data, conn, curs)
+                elif data['text'] == "show preferences":
+                    lobby = showprefs(data, conn, curs)
                 elif data['text'] == "version":
                     lobby = showversion(data, curs, botversion, botcodename)
                 else:

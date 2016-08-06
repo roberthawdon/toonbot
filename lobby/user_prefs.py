@@ -6,6 +6,7 @@ import sys
 import json
 import urllib2
 import re
+from prettytable import PrettyTable
 
 outputs = []
 
@@ -100,4 +101,60 @@ def resetprefs(data, conn, curs):
     curs.execute(cmd, ([data['user']]))
     conn.commit()
     outputs.append([data['channel'], "Your preferences have been reset. Your subscriptions are unaffected."])
+    return outputs
+
+def showprefs(data, conn, curs):
+    cmd = "SELECT value FROM tbl_system WHERE name = 'tb_daystart'"
+    curs.execute(cmd)
+    result = curs.fetchall()
+    for times in result:
+        defaultstarttime = times[0]
+    cmd = "SELECT value FROM tbl_system WHERE name = 'tb_dayend'"
+    curs.execute(cmd)
+    result = curs.fetchall()
+    for times in result:
+        defaultendtime = times[0]
+    cmd = "SELECT value FROM tbl_system WHERE name = 'postcolor'"
+    curs.execute(cmd)
+    result = curs.fetchall()
+    for color in result:
+        defaultpostcolor = color[0]
+    cmd = "SELECT value FROM tbl_system WHERE name = 'posttextcolor'"
+    curs.execute(cmd)
+    result = curs.fetchall()
+    for color in result:
+        defaultposttextcolor = color[0]
+    cmd = "SELECT announcelevel, daystart, dayend, days, postcolor, posttextcolor FROM tbl_user_prefs WHERE slackuser = %s"
+    curs.execute(cmd, ([data['user']]))
+    result = curs.fetchall()
+    if len(result) != 0:
+        for prefs in result:
+            userannouncelevel = prefs[0] # For future use
+            userstarttime = prefs[1]
+            if userstarttime is not None:
+                starttime = userstarttime
+            else:
+                starttime = defaultstarttime
+            userendtime = prefs[2]
+            if userendtime is not None:
+                endtime = userendtime
+            else:
+                endtime = defaultendtime
+            userdays = prefs[3] # For future use
+            userpostcolor = prefs[4]
+            if userpostcolor is not None:
+                postcolor = userpostcolor
+            else:
+                postcolor = defaultpostcolor
+            userposttextcolor = prefs[5]
+            if userposttextcolor is not None:
+                posttextcolor = userposttextcolor
+            else:
+                posttextcolor = defaultposttextcolor
+    else:
+        starttime = defaultstarttime
+        endtime = defaultendtime
+        postcolor = defaultpostcolor
+        posttextcolor = defaultposttextcolor
+    outputs.append([data['channel'], "Here are your current settings:\nYour selected comics will start being posted to you at `" + starttime + "` and will stop at `" + endtime + "` local time.\nThe Hex value of the colour used for comic posts is #" + postcolor + " and any accompanying text that goes with it will use #" + posttextcolor + ".\nYou can reset any of your preferences by using `reset` as the argument, or say `clear preferences` to reset all settings to the global defaults. Your comic subscriptions will not be affected."])
     return outputs
