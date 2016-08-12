@@ -22,6 +22,7 @@ import re
 import os
 from datetime import datetime
 from checktimezone import checktimezone
+from botuser import getbotuser
 
 # Lobby Modules
 script_dirpath = os.path.dirname(os.path.join(os.getcwd(), __file__))
@@ -39,7 +40,7 @@ crontable = []
 outputs = []
 
 slacktoken = config["SLACK_TOKEN"]
-botuser = config["BOT_USER"]
+# botuser = config["BOT_USER"] # This is now all automated
 
 mysqlserver = config["MYSQL_SERVER"]
 mysqluser = config["MYSQL_USER"]
@@ -56,6 +57,34 @@ else:
 
 botversion = "0.7.0-dev"
 botcodename = "Project Lulu"
+
+try:
+    conn = MySQLdb.Connection(mysqlserver, mysqluser, mysqlpass, mysqldb)
+    curs = conn.cursor()
+    cmd = "SELECT value FROM tbl_system WHERE name = 'bot_user'"
+    curs.execute(cmd)
+    result = curs.fetchall()
+    if len(result) == 0:
+        botuser = getbotuser()
+        cmd = "INSERT IGNORE INTO tbl_system (name, value) VALUES ('bot_user', %s)"
+        curs.execute(cmd, ([botuser]))
+        conn.commit()
+    else:
+        for botusers in result:
+            botuser = botusers[0]
+        checkbotuser = getbotuser()
+        if checkbotuser != botuser:
+            botuser = checkbotuser
+            cmd = "INSERT IGNORE INTO tbl_system (name, value) VALUES ('bot_user', %s) ON DUPLICATE KEY UPDATE value = %s"
+            curs.execute(cmd, ([botuser], [botuser]))
+            conn.commit()
+    curs.close()
+
+except curs.Error, e:
+
+    print "Error %d: %s" % (e.args[0], e.args[1])
+    print "Error checking my user details."
+    sys.exit(1)
 
 def process_message(data):
     lobby = None
