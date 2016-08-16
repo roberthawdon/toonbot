@@ -66,7 +66,7 @@ def queue_comics():
 
         for selectedcomic in comicresult:
             comicrun = selectedcomic[0]
-            cmd = "SELECT latest, displayname FROM tbl_comics WHERE comicname = %s"
+            cmd = "SELECT latest, displayname FROM tbl_comics WHERE comicname = %s AND mode = 0"
             curs.execute(cmd, ([selectedcomic]))
             result = curs.fetchall()
             for comiclist in result:
@@ -89,8 +89,6 @@ def queue_comics():
                         offset = 0
                     if subscribed[5] != currenthash:
                         if workhourscheck(starttime, endtime, offset):
-                            # outputs.append([subscribed[1], firstmsg])
-                            # outputs.append([subscribed[1], secondmsg])
                             cmd = "INSERT INTO tbl_queue (slackuser, displayname, comichash) VALUES (%s, %s, %s)"
                             curs.execute(cmd, ([subscribed[0]], [displayname], [currenthash]))
                             result = curs.fetchall()

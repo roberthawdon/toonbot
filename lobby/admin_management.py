@@ -10,14 +10,13 @@ import re
 outputs = []
 
 slacktoken = config["SLACK_TOKEN"]
-botuser = config["BOT_USER"]
 
 mysqlserver = config["MYSQL_SERVER"]
 mysqluser = config["MYSQL_USER"]
 mysqlpass = config["MYSQL_PASS"]
 mysqldb = config["MYSQL_DB"]
 
-def promoteadmin(data, conn, curs):
+def promoteadmin(data, conn, curs, botuser):
     try:
         promoteuser = data['text'].split(' ', 1)[1]
         req = "https://slack.com/api/users.list?token=" + slacktoken
@@ -66,7 +65,7 @@ def promoteadmin(data, conn, curs):
         outputs.append([data['channel'], "You need to provide a user to promote to admin."])
     return outputs
 
-def revokeadmin(data, conn, curs):
+def revokeadmin(data, conn, curs, botuser):
     try:
         revokeuser = data['text'].split(' ', 1)[1]
         req = "https://slack.com/api/users.list?token=" + slacktoken

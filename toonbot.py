@@ -108,9 +108,9 @@ def process_message(data):
                 elif data['text'].startswith("announce") and str(admin) == '1':
                     lobby = announce(data, conn, curs)
                 elif data['text'].startswith("makeadmin") and str(admin) == '1':
-                    lobby = promoteadmin(data, conn, curs)
+                    lobby = promoteadmin(data, conn, curs, botuser)
                 elif data['text'].startswith("revokeadmin") and str(admin) == '1':
-                    lobby = revokeadmin(data, conn, curs)
+                    lobby = revokeadmin(data, conn, curs, botuser)
                 elif data['text'] == "claimadmin":
                     lobby = claimadmin(data, conn, curs, admin)
                 elif data['text'] == "help":

@@ -11,7 +11,6 @@ from prettytable import PrettyTable
 outputs = []
 
 slacktoken = config["SLACK_TOKEN"]
-botuser = config["BOT_USER"]
 
 mysqlserver = config["MYSQL_SERVER"]
 mysqluser = config["MYSQL_USER"]

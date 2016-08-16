@@ -19,7 +19,6 @@ from checktime import dayssince
 outputs = []
 
 slacktoken = config["SLACK_TOKEN"]
-botuser = config["BOT_USER"]
 
 mysqlserver = config["MYSQL_SERVER"]
 mysqluser = config["MYSQL_USER"]
@@ -30,7 +29,7 @@ def list(data, curs):
     tablecomics = PrettyTable(["Comic", "Subscribed", "Last Updated"])
     tablecomics.align["Comic"] = "l"
     tablecomics.padding_width = 1
-    cmd = "SELECT C.comicname, S.slackuser, C.lastfetched FROM tbl_comics C LEFT JOIN tbl_subscriptions S ON S.comicname = C.comicname AND S.slackuser = %s"
+    cmd = "SELECT C.comicname, S.slackuser, C.lastfetched FROM tbl_comics C LEFT JOIN tbl_subscriptions S ON S.comicname = C.comicname AND S.slackuser = %s WHERE C.mode = 0"
     curs.execute(cmd, ([data['user']]))
     result = curs.fetchall()
     for comics in result:
