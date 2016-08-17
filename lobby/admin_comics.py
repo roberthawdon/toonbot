@@ -24,10 +24,10 @@ mysqlpass = config["MYSQL_PASS"]
 mysqldb = config["MYSQL_DB"]
 
 def comicstatus(data, curs):
-    tablecomics = PrettyTable(["Comic", "Last Updated", "Status"])
+    tablecomics = PrettyTable(["Comic", "Subscribers", "Last Updated", "Status"])
     tablecomics.align["Comic"] = "l"
     tablecomics.padding_width = 1
-    cmd = "SELECT comicname, lastfetched, mode FROM tbl_comics ORDER BY comicname"
+    cmd = "SELECT C.comicname, C.lastfetched, C.mode, COUNT(S.comicname) FROM tbl_comics C LEFT JOIN tbl_subscriptions S ON C.comicname = S.comicname GROUP BY C.comicname ORDER BY C.comicname"
     curs.execute(cmd)
     result = curs.fetchall()
     for comics in result:
@@ -44,7 +44,7 @@ def comicstatus(data, curs):
             lastfetched = dayssince(now, comics[1])
         else:
             lastfetched = "Never"
-        tablecomics.add_row([comics[0], lastfetched, modeflag])
+        tablecomics.add_row([comics[0], comics[3], lastfetched, modeflag])
     outputs.append([data['channel'], "```" + str(tablecomics) + "```"])
     return outputs
 
