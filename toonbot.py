@@ -35,6 +35,7 @@ from comic_selector import *
 from feedback_set import *
 from admin_announce import *
 from user_prefs import *
+from admin_comics import *
 
 crontable = []
 outputs = []
@@ -111,6 +112,8 @@ def process_message(data):
                     lobby = promoteadmin(data, conn, curs, botuser)
                 elif data['text'].startswith("revokeadmin") and str(admin) == '1':
                     lobby = revokeadmin(data, conn, curs, botuser)
+                elif data['text'] == "comicadmin list" and str(admin) == '1':
+                    lobby = comicstatus(data, curs)
                 elif data['text'] == "claimadmin":
                     lobby = claimadmin(data, conn, curs, admin)
                 elif data['text'] == "help":
