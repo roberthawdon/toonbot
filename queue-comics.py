@@ -60,7 +60,7 @@ def queue_comics():
         curs.execute('SET NAMES utf8;')
         curs.execute('SET CHARACTER SET utf8;')
         curs.execute('SET character_set_connection=utf8;')
-        cmd = "SELECT comicname FROM tbl_comics"
+        cmd = "SELECT comicname FROM tbl_comics WHERE mode = 0"
         curs.execute(cmd)
         comicresult = curs.fetchall()
 

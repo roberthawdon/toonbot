@@ -3,6 +3,7 @@ import time
 import json
 import urllib2
 import MySQLdb
+import sys
 from datetime import datetime
 
 slacktoken = config["SLACK_TOKEN"]

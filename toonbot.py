@@ -114,6 +114,8 @@ def process_message(data):
                     lobby = revokeadmin(data, conn, curs, botuser)
                 elif data['text'] == "comicadmin list" and str(admin) == '1':
                     lobby = comicstatus(data, curs)
+                elif data['text'].startswith("comicmode") and str(admin) == '1':
+                    lobby = comicsetmode(data, conn, curs)
                 elif data['text'] == "claimadmin":
                     lobby = claimadmin(data, conn, curs, admin)
                 elif data['text'] == "help":

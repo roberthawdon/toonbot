@@ -32,7 +32,7 @@ def comicstatus(data, curs):
     result = curs.fetchall()
     for comics in result:
         if comics[2] == 1:
-            modeflag = "Disabled and Hidden"
+            modeflag = "Deactivated (Hidden)"
         elif comics[2] == 2:
             modeflag = "Disabled"
         elif comics[2] == 3:
@@ -48,4 +48,40 @@ def comicstatus(data, curs):
     outputs.append([data['channel'], "```" + str(tablecomics) + "```"])
     return outputs
 
+def comicsetmode (data, conn, curs):
+    try:
+        modecommand = data['text'].split(' ', 1)[1]
+        if modecommand.startswith("activate"):
+            modecode = '0'
+        elif modecommand.startswith("deactivate"):
+            modecode = '1'
+        elif modecommand.startswith("disable"):
+            modecode = '2'
+        elif modecommand.startswith("hide"):
+            modecode = '3'
+        else:
+            outputs.append([data['channel'], "Please choose `activate`, `deactivate`, `disable`, or `hide`"])
+            return outputs
+        selectedcomic = modecommand.split(' ', 1)[1]
+        cmd = "SELECT * FROM tbl_comics WHERE comicname = %s"
+        curs.execute(cmd, ([selectedcomic]))
+        result = curs.fetchall()
+        if len(result) == 0:
+            outputs.append([data['channel'], "No comic `" + selectedcomic + "` available."])
+        else:
+            cmd = "UPDATE tbl_comics SET mode = %s WHERE comicname = %s"
+            curs.execute(cmd, ([modecode], [selectedcomic]))
+            conn.commit()
+            if modecode == '0':
+                outputs.append([data['channel'], "I have *activated* the comic `" + selectedcomic + "`."])
+            elif modecode == '1':
+                outputs.append([data['channel'], "I have *deactivated* the comic `" + selectedcomic + "`."])
+            elif modecode == '2':
+                outputs.append([data['channel'], "I have *disabled* the comic `" + selectedcomic + "`."])
+            elif modecode == '3':
+                outputs.append([data['channel'], "I have *hidden* the comic `" + selectedcomic + "`."])
+    except curs.Error, e:
+        print "Error %d: %s" % (e.args[0], e.args[1])
+        sys.exit(1)
 
+    return outputs
