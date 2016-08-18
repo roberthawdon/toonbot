@@ -52,10 +52,10 @@ Anything else passed to Toonbot is treated as a request to either subscribe or u
 * `announce` - Can broadcast a message to all users using the service. Toonbot will queue these messages and notify you when the message has been delivered and how many users you've reached. Note: Toonbot will **not** send announcements to users who have either never interacted with the bot, never subscribed to a comic, or have unsubscribed from all the comics.
 * `comicadmin list` - Lists all comics installed in toonbot. It also lists how many users are subscribed to each comic, how long it's been since a new comic was fetched, and its current mode.
 * `comicmode` - Set comics to various modes:
-** `activate` - Normal state, the comic is shown in the list, users can subscribe or unsubscribe to it, and comics will be posted when they're updated.
-** `deactivate` - The comic is removed from the list. Users will not be able to subscribe or unsubscribe to it, and new updates will not be fetched.
-** `disable` - The comic is shown in the list, users can subscribe or unsubscribe from it but updates will not be fetched. The last comic fetched will be posted to new subscribers if available.
-** `hidden` - The comic will not be shown in the list. The user can subscribe or unsubscribe from it, comics will be fetched and posted. This is useful for trialling new comics, or comics not indented for public consumption.
+  * `activate` - Normal state, the comic is shown in the list, users can subscribe or unsubscribe to it, and comics will be posted when they're updated.
+  * `deactivate` - The comic is removed from the list. Users will not be able to subscribe or unsubscribe to it, and new updates will not be fetched.
+  * `disable` - The comic is shown in the list, users can subscribe or unsubscribe from it but updates will not be fetched. The last comic fetched will be posted to new subscribers if available.
+  * `hidden` - The comic will not be shown in the list. The user can subscribe or unsubscribe from it, comics will be fetched and posted. This is useful for trialling new comics, or comics not indented for public consumption.
 
 ### Notes on timezones
 
