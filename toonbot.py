@@ -106,15 +106,15 @@ def process_message(data):
                     lobby = list(data, curs)
                 elif data['text'].startswith("feedback") and feedbacksetting:
                     lobby = feedback(data, conn, curs)
-                elif data['text'].startswith("announce") and str(admin) == '1':
+                elif data['text'].startswith("announce") and (str(admin) == '1' or str(admin) == '2'):
                     lobby = announce(data, conn, curs)
-                elif data['text'].startswith("makeadmin") and str(admin) == '1':
+                elif data['text'].startswith("makeadmin") and (str(admin) == '1' or str(admin) == '2'):
                     lobby = promoteadmin(data, conn, curs, botuser)
-                elif data['text'].startswith("revokeadmin") and str(admin) == '1':
+                elif data['text'].startswith("revokeadmin") and (str(admin) == '1' or str(admin) == '2'):
                     lobby = revokeadmin(data, conn, curs, botuser)
-                elif data['text'] == "comicadmin list" and str(admin) == '1':
+                elif data['text'] == "comicadmin list" and (str(admin) == '1' or str(admin) == '2'):
                     lobby = comicstatus(data, curs)
-                elif data['text'].startswith("comicmode") and str(admin) == '1':
+                elif data['text'].startswith("comicmode") and (str(admin) == '1' or str(admin) == '2'):
                     lobby = comicsetmode(data, conn, curs)
                 elif data['text'] == "claimadmin":
                     lobby = claimadmin(data, conn, curs, admin)
