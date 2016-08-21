@@ -84,7 +84,7 @@ class FetcherBot(object):
                         else:
                             timeout = int(default_timeout)
                 from comicmodule import fetch_comic
-                if mode != 1 or mode != 2:
+                if mode == 0 or mode == 3:
                     status, comichash, title, comic, text, link, comicname, comictitle = fetch_comic(comicnamecode, timeout)
                 else:
                     status = False
