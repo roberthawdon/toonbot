@@ -60,7 +60,7 @@ def queue_comics():
         curs.execute('SET NAMES utf8;')
         curs.execute('SET CHARACTER SET utf8;')
         curs.execute('SET character_set_connection=utf8;')
-        cmd = "SELECT comicname FROM tbl_comics"
+        cmd = "SELECT comicname FROM tbl_comics WHERE (mode = 0 OR mode = 2 OR mode = 3)"
         curs.execute(cmd)
         comicresult = curs.fetchall()
 
@@ -89,8 +89,6 @@ def queue_comics():
                         offset = 0
                     if subscribed[5] != currenthash:
                         if workhourscheck(starttime, endtime, offset):
-                            # outputs.append([subscribed[1], firstmsg])
-                            # outputs.append([subscribed[1], secondmsg])
                             cmd = "INSERT INTO tbl_queue (slackuser, displayname, comichash) VALUES (%s, %s, %s)"
                             curs.execute(cmd, ([subscribed[0]], [displayname], [currenthash]))
                             result = curs.fetchall()

@@ -40,3 +40,16 @@ def workhourscheck(starttime, endtime, tzoffset):
             return True
         else:
             return False
+
+def dayssince(target, compare):
+    if target > compare:
+        delta = target - compare
+        if delta.days == 0:
+            output = "Today"
+        elif delta.days == 1:
+            output = str(delta.days) + " day ago"
+        else:
+            output = str(delta.days) + " days ago"
+    else:
+        output = "ERROR"
+    return output
