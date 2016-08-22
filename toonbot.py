@@ -116,10 +116,8 @@ def process_message(data):
                     lobby = promotesuperadmin(data, conn, curs, botuser)
                 elif data['text'].startswith("revokesuperadmin") and str(admin) == '2':
                     lobby = revokesuperadmin(data, conn, curs, botuser)
-                elif data['text'] == "comicadmin list" and (str(admin) == '1' or str(admin) == '2'):
-                    lobby = comicstatus(data, curs)
-                elif data['text'].startswith("comicmode") and (str(admin) == '1' or str(admin) == '2'):
-                    lobby = comicsetmode(data, conn, curs)
+                elif data['text'].startswith("comicadmin") and (str(admin) == '1' or str(admin) == '2'):
+                    lobby = comicadmin(data, conn, curs)
                 elif data['text'] == "claimadmin":
                     lobby = claimadmin(data, conn, curs, admin)
                 elif data['text'] == "claimsuperadmin" and (str(admin) == '1' or str(admin) == '2'):

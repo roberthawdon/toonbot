@@ -48,10 +48,10 @@ def comicstatus(data, curs):
     outputs.append([data['channel'], "```" + str(tablecomics) + "```"])
     return outputs
 
-def comicsetmode (data, conn, curs):
+def comicadmin (data, conn, curs):
     try:
         modecommand = data['text'].split(' ', 1)[1]
-        if modecommand.startswith("activate"):
+        if modecommand.startswith("activate") or modecommand.startswith("enable"):
             modecode = '0'
         elif modecommand.startswith("deactivate"):
             modecode = '1'
@@ -59,6 +59,8 @@ def comicsetmode (data, conn, curs):
             modecode = '2'
         elif modecommand.startswith("hide"):
             modecode = '3'
+        elif modecommand.startswith("list"):
+            return comicstatus(data, curs)
         else:
             outputs.append([data['channel'], "Please choose `activate`, `deactivate`, `disable`, or `hide`"])
             return outputs
