@@ -13,7 +13,7 @@ A plugin for Slack's python-rtmbot to send web comics via direct messages.
 * Switch to the db/base directory and import the database to MySQL.
 * Go up one level and run `./migrate.py` to update the database with any last minute changes.
 * Start rtmbot and talk to your Toonbot user on slack.
-* Say `claimadmin` to grant your user administrator privileges - **Note: Until this has been done, any user can promote themselves to Administrator**
+* Say `claimadmin` to grant your user administrator privileges followed with `claimsuperadmin` to grant yourself super administrator status - **Note: Until this has been done, any user can promote themselves to (Super) Administrator**
 
 ## Upgrading
 
@@ -30,7 +30,7 @@ A plugin for Slack's python-rtmbot to send web comics via direct messages.
 
 ## User Commands
 
-* `list` - This will show a list of available webcomics Toonbot can deliever to you. It will also indicate which comics you have already subscribed to.
+* `list` - This will show a list of available webcomics Toonbot can deliever to you. It will also indicate which comics you have already subscribed to. The number of days the comic was last updated will also be indicated.
 * `feedback` - This allows your users to send feedback to your Toonbot administrator.
 * `start` - Change the time the bot will start sending you comics, please use the following format `HH:MM:SS`. This is a 24 hour clock. This should be set to your local time as Toonbot uses the timezone you've set on your Slack profile to determine when it's best to send you comics.
 * `end` - Change the time the bot will stop sending you comics. Again, use the `HH:MM:SS` format when setting the time.
@@ -47,9 +47,19 @@ Anything else passed to Toonbot is treated as a request to either subscribe or u
 
 ## Administrator Commands
 
+* `claimsuperadmin` - Promote the first admin user to super administrator status. Currently, this will ensure your administrator status can't be revoked by a standard administrator.
 * `makeadmin` - Running this command followed by the name of a user (without the @) will promote them to administrator status. They will receive a notification telling them this.
 * `revokeadmin` - Running this followed by the name of the user will revoke their admin permissions. They will be notified when this happens. **Note: You cannot revoke your own administrator privileges**
+* `makesuperadmin` - This command followed by the name of a user will promote them to super administrator status.
+* `revokesuperadmin` - Followed by the name of a user will strip **all** their administrator privileges returning them to a normal user.
 * `announce` - Can broadcast a message to all users using the service. Toonbot will queue these messages and notify you when the message has been delivered and how many users you've reached. Note: Toonbot will **not** send announcements to users who have either never interacted with the bot, never subscribed to a comic, or have unsubscribed from all the comics.
+* `comicadmin` - Allows you to manage the comics installed on the bot. Append the following:
+  * `list`- Lists all comics installed in toonbot. It also lists how many users are subscribed to each comic, how long it's been since a new comic was fetched, and its current mode.
+Set comics to various modes:
+  * `activate` - Normal state, the comic is shown in the list, users can subscribe or unsubscribe to it, and comics will be posted when they're updated.
+  * `deactivate` - The comic is removed from the list. Users will not be able to subscribe or unsubscribe to it, and new updates will not be fetched.
+  * `disable` - The comic is shown in the list, users can subscribe or unsubscribe from it but updates will not be fetched. The last comic fetched will be posted to new subscribers if available.
+  * `hidden` - The comic will not be shown in the list. The user can subscribe or unsubscribe from it, comics will be fetched and posted. This is useful for trialling new comics, or comics not indented for public consumption.
 
 ### Notes on timezones
 

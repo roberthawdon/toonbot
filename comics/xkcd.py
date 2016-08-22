@@ -23,7 +23,7 @@ def fetch_comic(comicname, fetch_timeout):
             prehash = comic
 
         except Exception, e:
-            comic = "http://127.0.0.1/404.png" # To Do, source an image for interactive comic purposes.
+            comic = "https://imgs.xkcd.com/static/terrible_small_logo.png" # To Do, source an image for interactive comic purposes.
             text = "*Today's XKCD looks to be an interactive comic.*"
             prehash = url
 
