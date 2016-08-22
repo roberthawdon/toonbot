@@ -112,12 +112,18 @@ def process_message(data):
                     lobby = promoteadmin(data, conn, curs, botuser)
                 elif data['text'].startswith("revokeadmin") and (str(admin) == '1' or str(admin) == '2'):
                     lobby = revokeadmin(data, conn, curs, botuser)
+                elif data['text'].startswith("makesuperadmin") and str(admin) == '2':
+                    lobby = promotesuperadmin(data, conn, curs, botuser)
+                elif data['text'].startswith("revokesuperadmin") and str(admin) == '2':
+                    lobby = revokesuperadmin(data, conn, curs, botuser)
                 elif data['text'] == "comicadmin list" and (str(admin) == '1' or str(admin) == '2'):
                     lobby = comicstatus(data, curs)
                 elif data['text'].startswith("comicmode") and (str(admin) == '1' or str(admin) == '2'):
                     lobby = comicsetmode(data, conn, curs)
                 elif data['text'] == "claimadmin":
                     lobby = claimadmin(data, conn, curs, admin)
+                elif data['text'] == "claimsuperadmin" and (str(admin) == '1' or str(admin) == '2'):
+                    lobby = claimsuperadmin(data, conn, curs, admin)
                 elif data['text'] == "help":
                     lobby = help(data)
                 elif data['text'] == "about":
@@ -140,7 +146,11 @@ def process_message(data):
                     lobby = comic_selector(data, conn, curs)
 
                 if lobby is not None:
-                    outputs.append(lobby[0])
+                    lobbymessages = len(lobby) - 1
+                    lobbycounter = 0
+                    while lobbycounter <= lobbymessages:
+                        outputs.append(lobby[lobbycounter])
+                        lobbycounter = lobbycounter + 1
                     del lobby[:]
                 else:
                     outputs.append([data['channel'], "Something went wrong with the lobby module that deals with this command and I was not given anything to say."])
