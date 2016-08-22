@@ -62,7 +62,7 @@ def comicadmin (data, conn, curs):
         elif modecommand.startswith("list"):
             return comicstatus(data, curs)
         else:
-            outputs.append([data['channel'], "Please choose `activate`, `deactivate`, `disable`, or `hide`"])
+            outputs.append([data['channel'], "Please choose `activate`, `deactivate`, `disable`, or `hide` followed by the comic name, or `list` to see the status of comics."])
             return outputs
         selectedcomic = modecommand.split(' ', 1)[1]
         cmd = "SELECT * FROM tbl_comics WHERE comicname = %s"
@@ -82,8 +82,7 @@ def comicadmin (data, conn, curs):
                 outputs.append([data['channel'], "I have *disabled* the comic `" + selectedcomic + "`."])
             elif modecode == '3':
                 outputs.append([data['channel'], "I have *hidden* the comic `" + selectedcomic + "`."])
-    except curs.Error, e:
-        print "Error %d: %s" % (e.args[0], e.args[1])
-        sys.exit(1)
+    except Exception, e:
+        outputs.append([data['channel'], "Syntax error."])
 
     return outputs

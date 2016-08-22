@@ -56,8 +56,8 @@ if 'FEEDBACK' in config:
 else:
     feedbacksetting = True
 
-botversion = "0.7.0-dev"
-botcodename = "Project Lulu"
+botversion = "0.7.0"
+botcodename = "Little Lulu"
 
 try:
     conn = MySQLdb.Connection(mysqlserver, mysqluser, mysqlpass, mysqldb)
