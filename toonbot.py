@@ -56,7 +56,7 @@ if 'FEEDBACK' in config:
 else:
     feedbacksetting = True
 
-botversion = "0.7.0"
+botversion = "0.7.1"
 botcodename = "Little Lulu"
 
 try:
