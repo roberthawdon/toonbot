@@ -74,7 +74,7 @@ def queue_comics():
                 displayname = comiclist[1]
 
             if currenthash:
-                cmd = "SELECT U.slackuser, U.dmid, P.daystart, P.dayend, U.tzoffset, S.lastsent FROM tbl_subscriptions S LEFT OUTER JOIN tbl_users U ON U.slackuser = S.slackuser LEFT OUTER JOIN tbl_user_prefs P ON U.slackuser = P.slackuser WHERE comicname = %s"
+                cmd = "SELECT U.slackuser, U.dmid, P.daystart, P.dayend, U.tzoffset, S.lastsent FROM tbl_subscriptions S LEFT OUTER JOIN tbl_users U ON U.slackuser = S.slackuser LEFT OUTER JOIN tbl_user_prefs P ON U.slackuser = P.slackuser WHERE U.account_disabled = 0 AND comicname = %s"
                 curs.execute(cmd, ([comicrun]))
                 result = curs.fetchall()
                 for subscribed in result:

@@ -21,7 +21,7 @@ import urllib2
 import re
 import os
 from datetime import datetime
-from checktimezone import checktimezone
+from checkaccount import checkaccount
 from botuser import getbotuser
 
 # Lobby Modules
@@ -36,6 +36,7 @@ from feedback_set import *
 from admin_announce import *
 from user_prefs import *
 from admin_comics import *
+from admin_system import *
 
 crontable = []
 outputs = []
@@ -56,7 +57,7 @@ if 'FEEDBACK' in config:
 else:
     feedbacksetting = True
 
-botversion = "0.7.1"
+botversion = "0.7.2"
 botcodename = "Little Lulu"
 
 try:
@@ -122,6 +123,18 @@ def process_message(data):
                     lobby = claimadmin(data, conn, curs, admin)
                 elif data['text'] == "claimsuperadmin" and (str(admin) == '1' or str(admin) == '2'):
                     lobby = claimsuperadmin(data, conn, curs, admin)
+                elif data['text'].startswith("globalstart") and (str(admin) == '1' or str(admin) == '2'):
+                    lobby = globalstarttime(data, conn, curs)
+                elif data['text'].startswith("globalend") and (str(admin) == '1' or str(admin) == '2'):
+                    lobby = globalendtime(data, conn, curs)
+                elif data['text'].startswith("globalpostcolour") or data['text'].startswith("globalpostcolor") and (str(admin) == '1' or str(admin) == '2'):
+                    lobby = globalpostcolor(data, conn, curs)
+                elif data['text'].startswith("globalposttextcolour") or data['text'].startswith("globalposttextcolor") and (str(admin) == '1' or str(admin) == '2'):
+                    lobby = globalposttextcolor(data, conn, curs)
+                elif data['text'].startswith("fetchtimeout") and (str(admin) == '1' or str(admin) == '2'):
+                    lobby = comicfetchtimeout(data, conn, curs)
+                elif data['text'].startswith("janitortime") and (str(admin) == '1' or str(admin) == '2'):
+                    lobby = janitorruntime(data, conn, curs)
                 elif data['text'] == "help":
                     lobby = help(data)
                 elif data['text'] == "about":
@@ -168,5 +181,5 @@ def register(data, conn, curs):
     cmd = "INSERT INTO tbl_users (slackuser, dmid) values (%s, %s)"
     curs.execute(cmd, ([data['user']], [data['channel']]))
     conn.commit()
-    checktimezone(data['user'])
+    checkaccount(data['user'])
     outputs.append([data['channel'], "Hello <@" + data['user'] + ">, I don't think we've met. Type `list` to show a list of available comics to get started."])

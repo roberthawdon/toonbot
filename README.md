@@ -35,7 +35,7 @@ A plugin for Slack's python-rtmbot to send web comics via direct messages.
 * `start` - Change the time the bot will start sending you comics, please use the following format `HH:MM:SS`. This is a 24 hour clock. This should be set to your local time as Toonbot uses the timezone you've set on your Slack profile to determine when it's best to send you comics.
 * `end` - Change the time the bot will stop sending you comics. Again, use the `HH:MM:SS` format when setting the time.
 * `postcolour` - Change the colour of image attachments, please provide your colour in a hex format such as `#d3f6aa`.
-* `posttextcolor` - Changes the colour of the attachments containing supplementary text used by some comics. Again, provide the colour in a hex format.
+* `posttextcolour` - Changes the colour of the attachments containing supplementary text used by some comics. Again, provide the colour in a hex format.
 * `clear preferences` - This will clear all your custom preferences resetting them to the defaults. This will not unsubscribe you from comics.
 * `claimadmin` - This sets your user as an administrator if no other users are administrators. This should be run when first setting up the bot. Should someone else have claimed the first administrator user, the stored procedure further on will allow you to manually force your user to become administrator.
 * `help` - Display a short help message for users.
@@ -60,6 +60,12 @@ Set comics to various modes:
   * `deactivate` - The comic is removed from the list. Users will not be able to subscribe or unsubscribe to it, and new updates will not be fetched.
   * `disable` - The comic is shown in the list, users can subscribe or unsubscribe from it but updates will not be fetched. The last comic fetched will be posted to new subscribers if available.
   * `hidden` - The comic will not be shown in the list. The user can subscribe or unsubscribe from it, comics will be fetched and posted. This is useful for trialling new comics, or comics not indented for public consumption.
+* `globalstarttime` - Defines the default start of day in the `HH:MM:SS` format. This will not affect users' own preferences.
+* `globalendtime` - Defines the default end of day in the `HH:MM:SS` format. Again, this will not affect users' own preferences.
+* `globalpostcolour` - Sets the default attachment colour, pass a colour value in hex format.
+* `globalposttextcolour` - Sets the attachment colour of supplementary text used by some comics. Again, pass this colour in hex format.
+* `fetchtimeout` - Sets the timeout value when checking for comics. The bot comes shipped with this value as `10` seconds.
+* `janitortime` - This sets the time, in UTC, the janitor process, which checks user account statuses, is run at. Define a time in the `HH:MM:SS`. There is a 60 second tolerance for when the process is run. By default, the process runs at `02:05:30` which may be unsuitable for some timezones.
 
 ### Notes on timezones
 

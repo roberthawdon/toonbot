@@ -5,7 +5,7 @@ import urllib2
 import MySQLdb
 from datetime import datetime
 from checktime import runat
-from checktimezone import checktimezone
+from checkaccount import checkaccount
 
 mysqlserver = config["MYSQL_SERVER"]
 mysqluser = config["MYSQL_USER"]
@@ -24,7 +24,7 @@ try:
     result = curs.fetchall()
     for preference in result:
         scheduled = preference[0]
-    
+
 except curs.Error, e:
 
     print "Error %d: %s" % (e.args[0], e.args[1])
@@ -40,4 +40,4 @@ outputs = []
 
 def janitor():
     if runat(scheduled, cron):
-        checktimezone()
+        checkaccount()
