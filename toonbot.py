@@ -10,7 +10,20 @@
 #
 #                                   Providing 5 minute breaks since 2016
 #
-# By Robert Hawdon - https://robertianhawdon.me.uk/
+#   Copyright (C) 2016  Robert Ian Hawdon - https://robertianhawdon.me.uk
+#
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __main__ import *
 import time
@@ -57,8 +70,8 @@ if 'FEEDBACK' in config:
 else:
     feedbacksetting = True
 
-botversion = "0.7.2"
-botcodename = "Little Lulu"
+botversion = "0.8.0-Dev"
+botcodename = "Project Garfield"
 
 try:
     conn = MySQLdb.Connection(mysqlserver, mysqluser, mysqlpass, mysqldb)

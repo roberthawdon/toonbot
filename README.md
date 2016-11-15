@@ -37,6 +37,7 @@ A plugin for Slack's python-rtmbot to send web comics via direct messages.
 * `postcolour` - Change the colour of image attachments, please provide your colour in a hex format such as `#d3f6aa`.
 * `posttextcolour` - Changes the colour of the attachments containing supplementary text used by some comics. Again, provide the colour in a hex format.
 * `clear preferences` - This will clear all your custom preferences resetting them to the defaults. This will not unsubscribe you from comics.
+* `show preferences` - To view all your current preferences.
 * `claimadmin` - This sets your user as an administrator if no other users are administrators. This should be run when first setting up the bot. Should someone else have claimed the first administrator user, the stored procedure further on will allow you to manually force your user to become administrator.
 * `help` - Display a short help message for users.
 * `version` - Show version info.
