@@ -92,6 +92,12 @@ The following can be called to remove a comic and unsubscribe users from it:
 CALL delete_comic('comicname');
 ```
 
+A whole comic pack can be removed from the database with this:
+
+```mysql
+CALL delete_comic_pack('packname');
+```
+
 The following can be run to upgrade a user to an admin:
 
 ```mysql

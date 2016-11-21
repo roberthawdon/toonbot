@@ -28,6 +28,9 @@ import os.path
 import re
 from tendo import singleton
 from datetime import datetime, time, timedelta
+from warnings import filterwarnings
+
+filterwarnings('ignore', category = MySQLdb.Warning)
 
 me = singleton.SingleInstance()
 
@@ -115,11 +118,11 @@ class FetcherBot(object):
                         pass
 
                     try:
-                        cmd = "SELECT comichash FROM tbl_comic_data WHERE comichash = %s"
+                        cmd = "SELECT D.comichash FROM tbl_comic_data D JOIN tbl_comics C ON C.latest = D.comichash WHERE D.comichash = %s"
                         curs.execute(cmd, ([comichash]))
                         result = curs.fetchall()
                         if len(result) == 0:
-                            cmd = "INSERT INTO tbl_comic_data (comichash, title, image, text, pageurl, fetchtime) VALUES (%s, %s, %s, %s, %s, %s)"
+                            cmd = "INSERT IGNORE INTO tbl_comic_data (comichash, title, image, text, pageurl, fetchtime) VALUES (%s, %s, %s, %s, %s, %s)"
                             curs.execute(cmd, ([comichash], [title], [comic], [text], [link], [currenttime]))
                             cmd = "UPDATE tbl_comics SET latest = %s, lastfetched = %s WHERE comicname = %s"
                             curs.execute(cmd, ([comichash], [currenttime], [comicname]))
