@@ -1,2 +1,4 @@
 *.pyc
 .#*
+comics/*
+!comics/README.md

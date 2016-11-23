@@ -34,6 +34,9 @@ filterwarnings('ignore', category = MySQLdb.Warning)
 
 me = singleton.SingleInstance()
 
+# To-Do, database this
+defaultmode = 1
+
 script_dirpath = os.path.dirname(os.path.join(os.getcwd(), __file__))
 comics_dirpath = script_dirpath + '/../comics'
 
@@ -67,70 +70,85 @@ class FetcherBot(object):
             print "Error 1 %d: %s" % (e.args[0], e.args[1])
             sys.exit(1)
 
-        for file in os.listdir(comics_dirpath):
-            if file.endswith(".py"):
-                modulename = re.sub(r'.py$', '', file)
-                sys.modules['comicmodule'] = __import__(modulename)
-                comicnamecode = modulename
-                cmd = "SELECT fetch_timeout, mode FROM tbl_comics WHERE comicname = %s"
-                curs.execute(cmd, ([comicnamecode]))
-                result = curs.fetchall()
-                if len(result) == 0:
-                    timeout = int(default_timeout)
-                    mode = 0
-                else:
-                    for timeout in result:
-                        comic_timeout = timeout[0]
-                        mode = timeout[1]
-                        if comic_timeout is not None:
-                            timeout = comic_timeout
-                        else:
-                            timeout = int(default_timeout)
-                from comicmodule import fetch_comic
-                if mode == 0 or mode == 3:
-                    status, comichash, title, comic, text, link, comicname, comictitle = fetch_comic(comicnamecode, timeout)
-                else:
-                    status = False
-                del sys.modules['comicmodule']
+        packs = [None]
 
-                if status is True:
-                    currenttime = datetime.utcnow()
-                    try:
-                        cmd = "SELECT comicname, displayname FROM tbl_comics WHERE comicname = %s"
-                        curs.execute(cmd, ([comicname]))
-                        result = curs.fetchall()
-                        if len(result) == 0:
-                            cmd = "INSERT INTO tbl_comics (comicname, displayname) VALUES (%s, %s)"
-                            curs.execute(cmd, ([comicname], [comictitle]))
-                            conn.commit()
-                            dbcomicmode = 0
-                        else:
-                            for comiclist in result:
-                                dbcomicname = comiclist[0]
-                                dbdisplayname = comiclist[1]
-                            if dbdisplayname != comictitle:
-                                cmd = "UPDATE tbl_comics SET displayname = %s WHERE comicname = %s"
-                                curs.execute(cmd, ([comictitle], [comicname]))
+        for directory in os.listdir(comics_dirpath):
+            if os.path.isdir(comics_dirpath + "/" + directory):
+                packs.append(directory)
+
+        for packname in packs:
+            if packname is None:
+                comicpath = comics_dirpath
+            else:
+                comicpath = comics_dirpath + "/" + packname
+
+            for file in os.listdir(comicpath):
+                if file.endswith(".py"):
+                    modulename = re.sub(r'.py$', '', file)
+                    sys.path.insert(0, comicpath)
+                    sys.modules['comicmodule'] = __import__(modulename)
+                    comicnamecode = modulename
+                    cmd = "SELECT fetch_timeout, mode FROM tbl_comics WHERE comicname = %s"
+                    curs.execute(cmd, ([comicnamecode]))
+                    result = curs.fetchall()
+                    if len(result) == 0:
+                        timeout = int(default_timeout)
+                        mode = 255
+                    else:
+                        for timeout in result:
+                            comic_timeout = timeout[0]
+                            mode = timeout[1]
+                            if comic_timeout is not None:
+                                timeout = comic_timeout
+                            else:
+                                timeout = int(default_timeout)
+                    from comicmodule import fetch_comic
+                    if mode == 0 or mode == 3:
+                        status, comichash, title, comic, text, link, comicname, comictitle = fetch_comic(comicnamecode, timeout)
+                    elif mode == 255:
+                        status, comichash, title, comic, text, link, comicname, comictitle = (True, None, None, None, None, None, comicnamecode, comicnamecode)
+                    else:
+                        status = False
+                    del sys.modules['comicmodule']
+
+                    if status is True:
+                        currenttime = datetime.utcnow()
+                        try:
+                            cmd = "SELECT comicname, displayname FROM tbl_comics WHERE comicname = %s"
+                            curs.execute(cmd, ([comicname]))
+                            result = curs.fetchall()
+                            if len(result) == 0:
+                                cmd = "INSERT INTO tbl_comics (comicname, displayname, pack, mode) VALUES (%s, %s, %s, %s)"
+                                curs.execute(cmd, ([comicname], [comictitle], [packname], [defaultmode]))
+                                conn.commit()
+                                dbcomicmode = 0
+                            else:
+                                for comiclist in result:
+                                    dbcomicname = comiclist[0]
+                                    dbdisplayname = comiclist[1]
+                                if dbdisplayname != comictitle:
+                                    cmd = "UPDATE tbl_comics SET displayname = %s WHERE comicname = %s"
+                                    curs.execute(cmd, ([comictitle], [comicname]))
+                                    conn.commit()
+
+                        except curs.Error, e:
+                            print "Error 1 %d: %s" % (e.args[0], e.args[1])
+                            pass
+
+                        try:
+                            cmd = "SELECT D.comichash FROM tbl_comic_data D JOIN tbl_comics C ON C.latest = D.comichash WHERE D.comichash = %s"
+                            curs.execute(cmd, ([comichash]))
+                            result = curs.fetchall()
+                            if len(result) == 0:
+                                cmd = "INSERT IGNORE INTO tbl_comic_data (comichash, title, image, text, pageurl, fetchtime) VALUES (%s, %s, %s, %s, %s, %s)"
+                                curs.execute(cmd, ([comichash], [title], [comic], [text], [link], [currenttime]))
+                                cmd = "UPDATE tbl_comics SET latest = %s, lastfetched = %s WHERE comicname = %s"
+                                curs.execute(cmd, ([comichash], [currenttime], [comicname]))
                                 conn.commit()
 
-                    except curs.Error, e:
-                        print "Error 1 %d: %s" % (e.args[0], e.args[1])
-                        pass
-
-                    try:
-                        cmd = "SELECT D.comichash FROM tbl_comic_data D JOIN tbl_comics C ON C.latest = D.comichash WHERE D.comichash = %s"
-                        curs.execute(cmd, ([comichash]))
-                        result = curs.fetchall()
-                        if len(result) == 0:
-                            cmd = "INSERT IGNORE INTO tbl_comic_data (comichash, title, image, text, pageurl, fetchtime) VALUES (%s, %s, %s, %s, %s, %s)"
-                            curs.execute(cmd, ([comichash], [title], [comic], [text], [link], [currenttime]))
-                            cmd = "UPDATE tbl_comics SET latest = %s, lastfetched = %s WHERE comicname = %s"
-                            curs.execute(cmd, ([comichash], [currenttime], [comicname]))
-                            conn.commit()
-
-                    except curs.Error, e:
-                        print "Error %d: %s" % (e.args[0], e.args[1])
-                        pass
+                        except curs.Error, e:
+                            print "Error %d: %s" % (e.args[0], e.args[1])
+                            pass
 
         if curs:
             curs.close()
