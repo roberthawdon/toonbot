@@ -40,7 +40,7 @@ defaultmode = 1
 script_dirpath = os.path.dirname(os.path.join(os.getcwd(), __file__))
 comics_dirpath = script_dirpath + '/../comics'
 
-sys.path.insert(0, comics_dirpath)
+# sys.path.insert(0, comics_dirpath)
 
 class FetcherBot(object):
     def __init__(self, config):
