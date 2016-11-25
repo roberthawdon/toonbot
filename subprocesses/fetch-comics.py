@@ -76,13 +76,41 @@ class FetcherBot(object):
             if os.path.isdir(comics_dirpath + "/" + directory):
                 packs.append(directory)
 
-        for packname in packs:
-            if packname is None:
+        for packdirectory in packs:
+            if packdirectory is None:
                 comicpath = comics_dirpath
+                packconfig = False
             else:
-                comicpath = comics_dirpath + "/" + packname
+                comicpath = comics_dirpath + "/" + packdirectory
+                if os.path.isfile(comicpath + "/toonpack.yml"):
+                    packconfig = True
+                else:
+                    packconfig = False
 
             for file in os.listdir(comicpath):
+                if packconfig is True:
+                    packconfigdata = yaml.load(open(comicpath + "/toonpack.yml"))
+                    packcode = packconfigdata["PackCode"]
+                    packname = packconfigdata["PackName"]
+                    packversion = packconfigdata["Version"]
+                    cmd = "SELECT ID, packcode, packname, version FROM tbl_packs WHERE packcode = %s"
+                    curs.execute(cmd, ([packcode]))
+                    result = curs.fetchall()
+                    if len(result) == 0:
+                        cmd = "INSERT INTO tbl_packs (packcode, packname, version) VALUES (%s, %s, %s)"
+                        curs.execute(cmd, ([packcode], [packname], [packversion]))
+                        conn.commit()
+                        packid = conn.insert_id()
+                    else:
+                        for packdetails in result:
+                            packid = packdetails[0]
+                            dbpackversion = packdetails[3]
+                            if dbpackversion != packversion:
+                                cmd = "UPDATE tbl_packs SET version = %s WHERE ID = %s"
+                                curs.execute(cmd, ([packversion], [packid]))
+                                conn.commit()
+                else:
+                    packid = None
                 if file.endswith(".py"):
                     modulename = re.sub(r'.py$', '', file)
                     sys.path.insert(0, comicpath)
@@ -114,21 +142,26 @@ class FetcherBot(object):
                     if status is True:
                         currenttime = datetime.utcnow()
                         try:
-                            cmd = "SELECT comicname, displayname FROM tbl_comics WHERE comicname = %s"
+                            cmd = "SELECT comicname, displayname, pack FROM tbl_comics WHERE comicname = %s"
                             curs.execute(cmd, ([comicname]))
                             result = curs.fetchall()
                             if len(result) == 0:
                                 cmd = "INSERT INTO tbl_comics (comicname, displayname, pack, mode) VALUES (%s, %s, %s, %s)"
-                                curs.execute(cmd, ([comicname], [comictitle], [packname], [defaultmode]))
+                                curs.execute(cmd, ([comicname], [comictitle], [packid], [defaultmode]))
                                 conn.commit()
                                 dbcomicmode = 0
                             else:
                                 for comiclist in result:
                                     dbcomicname = comiclist[0]
                                     dbdisplayname = comiclist[1]
+                                    dbpackid = comiclist[2]
                                 if dbdisplayname != comictitle:
                                     cmd = "UPDATE tbl_comics SET displayname = %s WHERE comicname = %s"
                                     curs.execute(cmd, ([comictitle], [comicname]))
+                                    conn.commit()
+                                if dbpackid != packid:
+                                    cmd = "UPDATE tbl_comics SET pack = %s WHERE comicname = %s"
+                                    curs.execute(cmd, ([packid], [comicname]))
                                     conn.commit()
 
                         except curs.Error, e:

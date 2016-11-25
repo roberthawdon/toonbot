@@ -27,7 +27,7 @@ def comicstatus(data, curs):
     tablecomics = PrettyTable(["Comic", "Pack", "Subscribers", "Last Updated", "Status"])
     tablecomics.align["Comic"] = "l"
     tablecomics.padding_width = 1
-    cmd = "SELECT C.comicname, C.lastfetched, C.mode, COUNT(S.comicname), C.pack FROM tbl_comics C LEFT JOIN tbl_subscriptions S ON C.comicname = S.comicname GROUP BY C.comicname ORDER BY C.comicname"
+    cmd = "SELECT C.comicname, C.lastfetched, C.mode, COUNT(S.comicname), P.packcode FROM tbl_comics C LEFT JOIN tbl_subscriptions S ON C.comicname = S.comicname LEFT JOIN tbl_packs P ON C.pack = P.ID GROUP BY C.comicname ORDER BY C.comicname"
     curs.execute(cmd)
     result = curs.fetchall()
     for comics in result:
