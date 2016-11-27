@@ -22,28 +22,6 @@ mysqluser = config["MYSQL_USER"]
 mysqlpass = config["MYSQL_PASS"]
 mysqldb = config["MYSQL_DB"]
 
-try:
-    conn = MySQLdb.Connection(mysqlserver, mysqluser, mysqlpass, mysqldb)
-    curs = conn.cursor()
-    cmd = "SELECT name, value FROM tbl_system WHERE name = %s"
-    curs.execute(cmd, ["tb_daystart"])
-    result = curs.fetchall()
-    for starttime in result:
-        defaultstart = starttime[1]
-    curs.execute(cmd, ["tb_dayend"])
-    result = curs.fetchall()
-    for endtime in result:
-        defaultend = endtime[1]
-
-except curs.Error, e:
-
-    print "Error %d: %s" % (e.args[0], e.args[1])
-    sys.exit(1)
-
-finally:
-
-    if curs:
-        curs.close()
 
 def queue_comics():
     try:
@@ -60,6 +38,17 @@ def queue_comics():
         curs.execute('SET NAMES utf8;')
         curs.execute('SET CHARACTER SET utf8;')
         curs.execute('SET character_set_connection=utf8;')
+
+        cmd = "SELECT name, value FROM tbl_system WHERE name = %s"
+        curs.execute(cmd, ["tb_daystart"])
+        result = curs.fetchall()
+        for starttime in result:
+            defaultstart = starttime[1]
+        curs.execute(cmd, ["tb_dayend"])
+        result = curs.fetchall()
+        for endtime in result:
+            defaultend = endtime[1]
+
         cmd = "SELECT comicname FROM tbl_comics WHERE (mode = 0 OR mode = 2 OR mode = 3)"
         curs.execute(cmd)
         comicresult = curs.fetchall()

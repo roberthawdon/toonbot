@@ -90,24 +90,32 @@ class FetcherBot(object):
             for file in os.listdir(comicpath):
                 if packconfig is True:
                     packconfigdata = yaml.load(open(comicpath + "/toonpack.yml"))
+                    packuuid = packconfigdata["PackUUID"]
                     packcode = packconfigdata["PackCode"]
                     packname = packconfigdata["PackName"]
+                    packdesc = packconfigdata["PackDescription"]
                     packversion = packconfigdata["Version"]
-                    cmd = "SELECT ID, packcode, packname, version FROM tbl_packs WHERE packcode = %s"
-                    curs.execute(cmd, ([packcode]))
+                    packgen = packconfigdata["PackGen"]
+                    cmd = "SELECT ID, UUID, packcode, packname, packdesc, version, packgen FROM tbl_packs WHERE UUID = %s"
+                    curs.execute(cmd, ([packuuid]))
                     result = curs.fetchall()
                     if len(result) == 0:
-                        cmd = "INSERT INTO tbl_packs (packcode, packname, version) VALUES (%s, %s, %s)"
-                        curs.execute(cmd, ([packcode], [packname], [packversion]))
+                        cmd = "INSERT INTO tbl_packs (UUID, packcode, packname, packdesc, version, packgen) VALUES (%s, %s, %s, %s, %s, %s)"
+                        curs.execute(cmd, ([packuuid], [packcode], [packname], [packdesc], [packversion], [packgen]))
                         conn.commit()
                         packid = conn.insert_id()
                     else:
                         for packdetails in result:
                             packid = packdetails[0]
-                            dbpackversion = packdetails[3]
-                            if dbpackversion != packversion:
-                                cmd = "UPDATE tbl_packs SET version = %s WHERE ID = %s"
-                                curs.execute(cmd, ([packversion], [packid]))
+                            dbpackuuid = packdetails[1]
+                            dbpackcode = packdetails[2]
+                            dbpackname = packdetails[3]
+                            dbpackdesc = packdetails[4]
+                            dbpackversion = packdetails[5]
+                            dbpackgen = packdetails[6]
+                            if dbpackcode != packcode or dbpackname != packname or dbpackdesc != packdesc or dbpackversion != packversion or dbpackgen != packgen:
+                                cmd = "UPDATE tbl_packs SET packcode = %s, packname = %s, packdesc = %s, version = %s, packgen = %s WHERE UUID = %s"
+                                curs.execute(cmd, ([packcode], [packname], [packdesc], [packversion], [packgen], [packuuid]))
                                 conn.commit()
                 else:
                     packid = None
