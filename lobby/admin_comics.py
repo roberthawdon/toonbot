@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from __main__ import *
 import time
+import shutil
 import MySQLdb
 import sys
 import json
@@ -12,6 +13,7 @@ from datetime import datetime, time, timedelta
 import os, inspect
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
+comics_dirpath = parentdir + '/comics'
 sys.path.insert(0,parentdir) 
 
 from checktime import dayssince
@@ -88,5 +90,28 @@ def comicadmin (data, conn, curs):
                 outputs.append([data['channel'], "I have *hidden* the comic `" + selectedcomic + "`."])
     except Exception, e:
         outputs.append([data['channel'], "Syntax error."])
+
+    return outputs
+
+def deletepack (data, conn, curs):
+    try:
+        packcode = data['text'].split(' ', 1)[1]
+        cmd = "SELECT directory FROM tbl_packs WHERE packcode = %s"
+        curs.execute(cmd, ([packcode]))
+        result = curs.fetchall()
+        if len(result) == 0:
+            outputs.append([data['channel'], "No pack `" + packcode + "` available."])
+        else:
+            for value in result:
+                packdirectory = result[0]
+            shutil.rmtree(comics_dirpath + '/' + packdirectory[0])
+            cmd = "CALL delete_comic_pack(%s)"
+            curs.execute(cmd, ([packcode]))
+            conn.commit()
+            outputs.append([data['channel'], "Pack `" + packcode + "` deleted, and users unsubscribed."])
+
+    except Exception, e:
+        outputs.append([data['channel'], "Syntax error."])
+        print e
 
     return outputs

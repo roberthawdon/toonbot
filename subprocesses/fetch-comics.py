@@ -96,14 +96,14 @@ class FetcherBot(object):
                     packdesc = packconfigdata["PackDescription"]
                     packversion = packconfigdata["Version"]
                     packgen = packconfigdata["PackGen"]
-                    cmd = "SELECT ID, UUID, packcode, packname, packdesc, version, packgen FROM tbl_packs WHERE UUID = %s"
+                    cmd = "SELECT ID, UUID, packcode, packname, packdesc, version, packgen, directory FROM tbl_packs WHERE UUID = %s"
                     curs.execute(cmd, ([packuuid]))
                     result = curs.fetchall()
                     if len(result) == 0:
                         cmd = "INSERT INTO tbl_packs (UUID, packcode, packname, packdesc, version, packgen) VALUES (%s, %s, %s, %s, %s, %s)"
                         curs.execute(cmd, ([packuuid], [packcode], [packname], [packdesc], [packversion], [packgen]))
-                        conn.commit()
                         packid = conn.insert_id()
+                        conn.commit()
                     else:
                         for packdetails in result:
                             packid = packdetails[0]
@@ -113,9 +113,10 @@ class FetcherBot(object):
                             dbpackdesc = packdetails[4]
                             dbpackversion = packdetails[5]
                             dbpackgen = packdetails[6]
-                            if dbpackcode != packcode or dbpackname != packname or dbpackdesc != packdesc or dbpackversion != packversion or dbpackgen != packgen:
-                                cmd = "UPDATE tbl_packs SET packcode = %s, packname = %s, packdesc = %s, version = %s, packgen = %s WHERE UUID = %s"
-                                curs.execute(cmd, ([packcode], [packname], [packdesc], [packversion], [packgen], [packuuid]))
+                            dbdirectory = packdetails[7]
+                            if dbpackcode != packcode or dbpackname != packname or dbpackdesc != packdesc or dbpackversion != packversion or dbpackgen != packgen or dbdirectory != packdirectory:
+                                cmd = "UPDATE tbl_packs SET packcode = %s, packname = %s, packdesc = %s, version = %s, packgen = %s, directory = %s WHERE UUID = %s"
+                                curs.execute(cmd, ([packcode], [packname], [packdesc], [packversion], [packgen], [packdirectory], [packuuid]))
                                 conn.commit()
                 else:
                     packid = None

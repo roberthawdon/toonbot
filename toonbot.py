@@ -55,7 +55,6 @@ crontable = []
 outputs = []
 
 slacktoken = config["SLACK_TOKEN"]
-# botuser = config["BOT_USER"] # This is now all automated
 
 mysqlserver = config["MYSQL_SERVER"]
 mysqluser = config["MYSQL_USER"]
@@ -148,6 +147,8 @@ def process_message(data):
                     lobby = comicfetchtimeout(data, conn, curs)
                 elif data['text'].startswith("janitortime") and (str(admin) == '1' or str(admin) == '2'):
                     lobby = janitorruntime(data, conn, curs)
+                elif data['text'].startswith("deletepack") and (str(admin) == '1' or str(admin) == '2'):
+                    lobby = deletepack(data, conn, curs)
                 elif data['text'] == "help":
                     lobby = help(data)
                 elif data['text'] == "about":
