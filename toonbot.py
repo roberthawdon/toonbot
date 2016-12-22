@@ -62,6 +62,15 @@ mysqluser = config["MYSQL_USER"]
 mysqlpass = config["MYSQL_PASS"]
 mysqldb = config["MYSQL_DB"]
 
+def register(data, conn, curs):
+    outputs = []
+    cmd = "INSERT INTO tbl_users (slackuser, dmid) values (%s, %s)"
+    curs.execute(cmd, ([data['user']], [data['channel']]))
+    conn.commit()
+    checkaccount(data['user'])
+    outputs.append([data['channel'], "Hello <@" + data['user'] + ">, I don't think we've met. Type `list` to show a list of available comics to get started."])
+    return outputs
+
 class ToonBot(Plugin):
 
 
@@ -117,7 +126,7 @@ class ToonBot(Plugin):
                 curs.execute(cmd, ([data['user']]))
                 result = curs.fetchall()
                 if len(result) == 0:
-                    register(data, conn, curs)
+                    lobby = register(data, conn, curs)
                 else:
                     for users in result:
                         admin = users[2]
@@ -176,15 +185,15 @@ class ToonBot(Plugin):
                     else:
                         lobby = comic_selector(data, conn, curs)
 
-                    if lobby is not None:
-                        lobbymessages = len(lobby) - 1
-                        lobbycounter = 0
-                        while lobbycounter <= lobbymessages:
-                            self.outputs.append(lobby[lobbycounter])
-                            lobbycounter = lobbycounter + 1
-                        del lobby[:]
-                    else:
-                        self.outputs.append([data['channel'], "Something went wrong with the lobby module that deals with this command and I was not given anything to say."])
+                if lobby is not None:
+                    lobbymessages = len(lobby) - 1
+                    lobbycounter = 0
+                    while lobbycounter <= lobbymessages:
+                        self.outputs.append(lobby[lobbycounter])
+                        lobbycounter = lobbycounter + 1
+                    del lobby[:]
+                else:
+                    self.outputs.append([data['channel'], "Something went wrong with the lobby module that deals with this command and I was not given anything to say."])
 
 
             except curs.Error, e:
@@ -197,9 +206,3 @@ class ToonBot(Plugin):
                 if curs:
                     curs.close()
 
-    def register(data, conn, curs):
-        cmd = "INSERT INTO tbl_users (slackuser, dmid) values (%s, %s)"
-        curs.execute(cmd, ([data['user']], [data['channel']]))
-        conn.commit()
-        checkaccount(data['user'])
-        self.outputs.append([data['channel'], "Hello <@" + data['user'] + ">, I don't think we've met. Type `list` to show a list of available comics to get started."])
