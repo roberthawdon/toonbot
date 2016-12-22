@@ -3,9 +3,14 @@ import time
 import json
 import urllib2
 import MySQLdb
+import sys
 from datetime import datetime
 from checktime import runat
 from checkaccount import checkaccount
+from rtmbot.core import Plugin, Job
+from confload import ToonbotConf
+
+config = ToonbotConf()
 
 mysqlserver = config["MYSQL_SERVER"]
 mysqluser = config["MYSQL_USER"]
@@ -37,11 +42,14 @@ def checkruntime():
 
 cron = 60
 
-crontable = []
-crontable.append([cron, "janitor"])
-outputs = []
+class JanitorJob(Job):
+    def run(self, slack_client):
+        scheduled = checkruntime()
+        if runat(scheduled, cron):
+            checkaccount()
+        return []
 
-def janitor():
-    scheduled = checkruntime()
-    if runat(scheduled, cron):
-        checkaccount()
+class Janitor(Plugin):
+    def register_jobs(self):
+        job = JanitorJob(cron)
+        self.jobs.append(job)

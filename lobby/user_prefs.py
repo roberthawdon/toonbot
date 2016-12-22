@@ -7,6 +7,9 @@ import json
 import urllib2
 import re
 from prettytable import PrettyTable
+from confload import ToonbotConf
+
+config = ToonbotConf()
 
 outputs = []
 

@@ -11,12 +11,16 @@ from prettytable import PrettyTable
 from datetime import datetime, time, timedelta
 
 import os, inspect
+
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
-comics_dirpath = parentdir + '/comics'
-sys.path.insert(0,parentdir) 
+sys.path.insert(0,parentdir)
 
+from confload import ToonbotConf
 from checktime import dayssince
+
+config = ToonbotConf()
+
 
 outputs = []
 

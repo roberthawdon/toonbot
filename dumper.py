@@ -1,3 +1,4 @@
-# def process_message(data):
-#
-#     print data
+def tbdumper():
+    def process_message(self, data):
+
+        print data

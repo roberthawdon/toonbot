@@ -6,6 +6,15 @@ import sys
 import json
 import urllib2
 import re
+import os, inspect
+
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(currentdir)
+sys.path.insert(0,parentdir)
+
+from confload import ToonbotConf
+
+config = ToonbotConf()
 
 outputs = []
 

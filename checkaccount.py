@@ -5,6 +5,9 @@ import urllib2
 import MySQLdb
 import sys
 from datetime import datetime
+from confload import ToonbotConf
+
+config = ToonbotConf()
 
 slacktoken = config["SLACK_TOKEN"]
 
