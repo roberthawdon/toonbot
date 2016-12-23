@@ -24,13 +24,13 @@ def setstarttime(data, conn, curs):
     try:
         timesetting = data['text'].split(' ', 1)[1]
         if re.match(r'^([0-1]?[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])$', timesetting):
-            cmd = "INSERT IGNORE INTO tbl_user_prefs (slackuser, daystart) VALUES (%s, %s) ON DUPLICATE KEY UPDATE daystart = %s"
-            curs.execute(cmd, ([data['user']], [timesetting], [timesetting]))
+            cmd = "INSERT IGNORE INTO tbl_preferences (userID, name, value) (SELECT ID, 'daystart', %s FROM tbl_users WHERE slackuser = %s) ON DUPLICATE KEY UPDATE value = %s"
+            curs.execute(cmd, ([timesetting], [data['user']], [timesetting]))
             conn.commit()
             outputs.append([data['channel'], "OK, I won't post any comics until `" + timesetting + "`. If you find comics are being sent to you at incorrect times, ensure your timezone is correct on Slack."])
         elif timesetting == 'reset':
-            cmd = "INSERT IGNORE INTO tbl_user_prefs (slackuser, daystart) VALUES (%s, %s) ON DUPLICATE KEY UPDATE daystart = %s"
-            curs.execute(cmd, ([data['user']], [None], [None]))
+            cmd = "DELETE FROM tbl_preferences WHERE userID = (SELECT ID FROM tbl_users WHERE slackuser = %s) AND name = 'daystart'"
+            curs.execute(cmd, ([data['user']]))
             conn.commit()
             outputs.append([data['channel'], "Your time setting has been reset."])
         else:
@@ -43,13 +43,13 @@ def setendtime(data, conn, curs):
     try:
         timesetting = data['text'].split(' ', 1)[1]
         if re.match(r'^([0-1]?[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])$', timesetting):
-            cmd = "INSERT IGNORE INTO tbl_user_prefs (slackuser, dayend) VALUES (%s, %s) ON DUPLICATE KEY UPDATE dayend = %s"
-            curs.execute(cmd, ([data['user']], [timesetting], [timesetting]))
+            cmd = "INSERT IGNORE INTO tbl_preferences (userID, name, value) (SELECT ID, 'dayend', %s FROM tbl_users WHERE slackuser = %s) ON DUPLICATE KEY UPDATE value = %s"
+            curs.execute(cmd, ([timesetting], [data['user']], [timesetting]))
             conn.commit()
             outputs.append([data['channel'], "OK, I won't post any comics after `" + timesetting + "`. If you find comics are being sent to you at incorrect times, ensure your timezone is correct on Slack."])
         elif timesetting == 'reset':
-            cmd = "INSERT IGNORE INTO tbl_user_prefs (slackuser, dayend) VALUES (%s, %s) ON DUPLICATE KEY UPDATE dayend = %s"
-            curs.execute(cmd, ([data['user']], [None], [None]))
+            cmd = "DELETE FROM tbl_preferences WHERE userID = (SELECT ID FROM tbl_users WHERE slackuser = %s) AND name = 'dayend'"
+            curs.execute(cmd, ([data['user']]))
             conn.commit()
             outputs.append([data['channel'], "Your time setting has been reset."])
         else:
@@ -63,13 +63,13 @@ def setpostcolour(data, conn, curs):
         coloursetting = data['text'].split(' ', 1)[1]
         if re.match(r'^#?0?[xX]?[0-9a-fA-F]{6}$', coloursetting):
             hex_code = re.sub(r'^#?0?[xX]?', '', coloursetting)
-            cmd = "INSERT IGNORE INTO tbl_user_prefs (slackuser, postcolor) VALUES (%s, %s) ON DUPLICATE KEY UPDATE postcolor = %s"
-            curs.execute(cmd, ([data['user']], [hex_code], [hex_code]))
+            cmd = "INSERT IGNORE INTO tbl_preferences (userID, name, value) (SELECT ID, 'postcolor', %s FROM tbl_users WHERE slackuser = %s) ON DUPLICATE KEY UPDATE value = %s"
+            curs.execute(cmd, ([hex_code], [data['user']], [hex_code]))
             conn.commit()
             outputs.append([data['channel'], "OK, I can do that for you."])
         elif coloursetting == 'reset':
-            cmd = "INSERT IGNORE INTO tbl_user_prefs (slackuser, postcolor) VALUES (%s, %s) ON DUPLICATE KEY UPDATE postcolor = %s"
-            curs.execute(cmd, ([data['user']], [None], [None]))
+            cmd = "DELETE FROM tbl_preferences WHERE userID = (SELECT ID FROM tbl_users WHERE slackuser = %s) AND name = 'postcolor'"
+            curs.execute(cmd, ([data['user']]))
             conn.commit()
             outputs.append([data['channel'], "Your colour setting has been reset."])
         else:
@@ -83,13 +83,13 @@ def setposttextcolour(data, conn, curs):
         coloursetting = data['text'].split(' ', 1)[1]
         if re.match(r'^#?0?[xX]?[0-9a-fA-F]{6}$', coloursetting):
             hex_code = re.sub(r'^#?0?[xX]?', '', coloursetting)
-            cmd = "INSERT IGNORE INTO tbl_user_prefs (slackuser, posttextcolor) VALUES (%s, %s) ON DUPLICATE KEY UPDATE posttextcolor = %s"
-            curs.execute(cmd, ([data['user']], [hex_code], [hex_code]))
+            cmd = "INSERT IGNORE INTO tbl_preferences (userID, name, value) (SELECT ID, 'posttextcolor', %s FROM tbl_users WHERE slackuser = %s) ON DUPLICATE KEY UPDATE value = %s"
+            curs.execute(cmd, ([hex_code], [data['user']], [hex_code]))
             conn.commit()
             outputs.append([data['channel'], "OK, I can do that for you."])
         elif coloursetting == 'reset':
-            cmd = "INSERT IGNORE INTO tbl_user_prefs (slackuser, posttextcolor) VALUES (%s, %s) ON DUPLICATE KEY UPDATE posttextcolor = %s"
-            curs.execute(cmd, ([data['user']], [None], [None]))
+            cmd = "DELETE FROM tbl_preferences WHERE userID = (SELECT ID FROM tbl_users WHERE slackuser = %s) AND name = 'posttextcolor'"
+            curs.execute(cmd, ([data['user']]))
             conn.commit()
             outputs.append([data['channel'], "Your colour setting has been reset."])
         else:
@@ -99,13 +99,18 @@ def setposttextcolour(data, conn, curs):
     return outputs
 
 def resetprefs(data, conn, curs):
-    cmd = "DELETE FROM tbl_user_prefs WHERE slackuser = %s"
+    cmd = "DELETE FROM tbl_preferences WHERE userID = (SELECT ID FROM tbl_users WHERE slackuser = %s)"
     curs.execute(cmd, ([data['user']]))
     conn.commit()
     outputs.append([data['channel'], "Your preferences have been reset. Your subscriptions are unaffected."])
     return outputs
 
 def showprefs(data, conn, curs):
+    cmd = "SELECT ID FROM tbl_users WHERE slackuser = %s"
+    curs.execute(cmd, [data['user']])
+    result = curs.fetchall()
+    for users in result:
+        userid = users[0]
     cmd = "SELECT value FROM tbl_system WHERE name = 'tb_daystart'"
     curs.execute(cmd)
     result = curs.fetchall()
@@ -126,37 +131,29 @@ def showprefs(data, conn, curs):
     result = curs.fetchall()
     for color in result:
         defaultposttextcolor = color[0]
-    cmd = "SELECT announcelevel, daystart, dayend, days, postcolor, posttextcolor FROM tbl_user_prefs WHERE slackuser = %s"
-    curs.execute(cmd, ([data['user']]))
+    cmd = "SELECT name, value FROM tbl_preferences WHERE userID = %s"
+    curs.execute(cmd, [userid])
     result = curs.fetchall()
-    if len(result) != 0:
-        for prefs in result:
-            userannouncelevel = prefs[0] # For future use
-            userstarttime = prefs[1]
-            if userstarttime is not None:
-                starttime = userstarttime
-            else:
-                starttime = defaultstarttime
-            userendtime = prefs[2]
-            if userendtime is not None:
-                endtime = userendtime
-            else:
-                endtime = defaultendtime
-            userdays = prefs[3] # For future use
-            userpostcolor = prefs[4]
-            if userpostcolor is not None:
-                postcolor = userpostcolor
-            else:
-                postcolor = defaultpostcolor
-            userposttextcolor = prefs[5]
-            if userposttextcolor is not None:
-                posttextcolor = userposttextcolor
-            else:
-                posttextcolor = defaultposttextcolor
+    prefname = []
+    prefvalue = []
+    for preferences in result:
+        prefname.append(preferences[0])
+        prefvalue.append(preferences[1])
+    if 'daystart' in prefname:
+        daystartmessage = "You have requested comics won't be posted before `" + prefvalue[prefname.index("daystart")] + "`."
     else:
-        starttime = defaultstarttime
-        endtime = defaultendtime
-        postcolor = defaultpostcolor
-        posttextcolor = defaultposttextcolor
-    outputs.append([data['channel'], "Here are your current settings:\nYour selected comics will start being posted to you at `" + starttime + "` and will stop at `" + endtime + "` local time.\nThe Hex value of the colour used for comic posts is #" + postcolor + " and any accompanying text that goes with it will use #" + posttextcolor + ".\nYou can reset any of your preferences by using `reset` as the argument, or say `clear preferences` to reset all settings to the global defaults. Your comic subscriptions will not be affected."])
+        daystartmessage = "Your comics won't be posted before `" + defaultstarttime + "`. This is the time set by your administrator, you can override this using the `start` command."
+    if 'dayend' in prefname:
+        dayendmessage = "You have requested comics won't be posted after `" + prefvalue[prefname.index("dayend")] + "`."
+    else:
+        dayendmessage = "Your comics won't be posted after `" + defaultendtime + "`. This is the time set by your administrator, you can override this using the `end` command."
+    if 'postcolor' in prefname:
+        postcolormessage = "You have chosen this colour (#" + prefvalue[prefname.index("postcolor")] + ") to accompany the comic images."
+    else:
+        postcolormessage = "This colour (#" + defaultpostcolor + ") will accompany the comic images. This is the default value and can be changed with the `postcolour` command."
+    if 'posttextcolor' in prefname:
+        posttextcolormessage = "You have chosen this colour (#" + prefvalue[prefname.index("posttextcolor")] + ") to be used with the text field used by some comics."
+    else:
+        posttextcolormessage = "This colour (#" + defaultposttextcolor + ") will be used with the text field used by certain comics. This is the default value and can be changed with the `posttextcolour` command."
+    outputs.append([data['channel'], daystartmessage + "\n" + dayendmessage + "\n" + postcolormessage + "\n" + posttextcolormessage])
     return outputs

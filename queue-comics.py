@@ -63,20 +63,36 @@ class QueueComicsJob(Job):
                     displayname = comiclist[1]
 
                 if currenthash:
-                    cmd = "SELECT U.slackuser, U.dmid, P.daystart, P.dayend, U.tzoffset, S.lastsent FROM tbl_subscriptions S LEFT OUTER JOIN tbl_users U ON U.slackuser = S.slackuser LEFT OUTER JOIN tbl_user_prefs P ON U.slackuser = P.slackuser WHERE U.account_disabled = 0 AND comicname = %s"
+                    cmd = "SELECT U.slackuser, U.dmid, U.tzoffset, S.lastsent FROM tbl_subscriptions S LEFT OUTER JOIN tbl_users U ON U.slackuser = S.slackuser WHERE U.account_disabled = 0 AND comicname = %s"
                     curs.execute(cmd, ([comicrun]))
                     result = curs.fetchall()
                     for subscribed in result:
-                        starttime = subscribed[2]
-                        endtime = subscribed[3]
-                        offset = subscribed[4]
-                        if starttime is None:
+                        slackuser = subscribed[0]
+                        offset = subscribed[2]
+                        cmd = "SELECT ID FROM tbl_users WHERE slackuser = %s"
+                        curs.execute(cmd, [slackuser])
+                        result = curs.fetchall()
+                        for users in result:
+                            userid = users[0]
+                        cmd = "SELECT name, value FROM tbl_preferences WHERE userID = %s"
+                        curs.execute(cmd, [userid])
+                        result = curs.fetchall()
+                        prefname = []
+                        prefvalue = []
+                        for preferences in result:
+                            prefname.append(preferences[0])
+                            prefvalue.append(preferences[1])
+                        if 'daystart' in prefname:
+                            starttime = prefvalue[prefname.index("daystart")]
+                        else:
                             starttime = defaultstart
-                        if endtime is None:
+                        if 'dayend' in prefname:
+                            endtime = prefvalue[prefname.index("dayend")]
+                        else:
                             endtime = defaultend
                         if offset is None:
                             offset = 0
-                        if subscribed[5] != currenthash:
+                        if subscribed[3] != currenthash:
                             if workhourscheck(starttime, endtime, offset):
                                 cmd = "INSERT INTO tbl_queue (slackuser, displayname, comichash) VALUES (%s, %s, %s)"
                                 curs.execute(cmd, ([subscribed[0]], [displayname], [currenthash]))
