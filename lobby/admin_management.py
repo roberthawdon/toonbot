@@ -231,7 +231,7 @@ def revokesuperadmin(data, conn, curs, botuser):
 
 def claimadmin(data, conn, curs, admin):
     try:
-        cmd = "SELECT slackuser, admin FROM tbl_users WHERE admin = 1;"
+        cmd = "SELECT slackuser, admin FROM tbl_users WHERE admin = 1 OR admin = 2;"
         curs.execute(cmd)
         result = curs.fetchall()
         if len(result) == 0:
