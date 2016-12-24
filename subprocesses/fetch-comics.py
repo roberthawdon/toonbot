@@ -92,7 +92,10 @@ class FetcherBot(object):
                     packversion = packconfigdata["Version"]
                     packgen = packconfigdata["PackGen"]
                     packprefs = packconfigdata["CustomPreferences"]
-                    print packprefs
+                    for key, value in packprefs.iteritems():
+                        cmd = "INSERT IGNORE INTO tbl_custom_preferences (`name`, `default`, `description`) VALUES (%s, %s, %s) ON DUPLICATE KEY UPDATE `default` = %s, `description` = %s"
+                        curs.execute(cmd, ([key], [value["default"]], [value["description"]], [value["default"]], [value["description"]]))
+                        conn.commit()
                     cmd = "SELECT ID, UUID, packcode, packname, packdesc, version, packgen, directory FROM tbl_packs WHERE UUID = %s"
                     curs.execute(cmd, ([packuuid]))
                     result = curs.fetchall()
