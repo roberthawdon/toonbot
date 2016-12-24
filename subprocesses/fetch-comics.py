@@ -84,11 +84,6 @@ class FetcherBot(object):
                 comicpath = comics_dirpath + "/" + packdirectory
                 if os.path.isfile(comicpath + "/toonpack.yml"):
                     packconfig = True
-                else:
-                    packconfig = False
-
-            for file in os.listdir(comicpath):
-                if packconfig is True:
                     packconfigdata = yaml.load(open(comicpath + "/toonpack.yml"))
                     packuuid = packconfigdata["PackUUID"]
                     packcode = packconfigdata["PackCode"]
@@ -96,6 +91,8 @@ class FetcherBot(object):
                     packdesc = packconfigdata["PackDescription"]
                     packversion = packconfigdata["Version"]
                     packgen = packconfigdata["PackGen"]
+                    packprefs = packconfigdata["CustomPreferences"]
+                    print packprefs
                     cmd = "SELECT ID, UUID, packcode, packname, packdesc, version, packgen, directory FROM tbl_packs WHERE UUID = %s"
                     curs.execute(cmd, ([packuuid]))
                     result = curs.fetchall()
@@ -119,6 +116,10 @@ class FetcherBot(object):
                                 curs.execute(cmd, ([packcode], [packname], [packdesc], [packversion], [packgen], [packdirectory], [packuuid]))
                                 conn.commit()
                 else:
+                    packconfig = False
+
+            for file in os.listdir(comicpath):
+                if packconfig is False:
                     packid = None
                 if file.endswith(".py"):
                     modulename = re.sub(r'.py$', '', file)

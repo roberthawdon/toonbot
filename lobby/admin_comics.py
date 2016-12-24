@@ -21,6 +21,7 @@ from checktime import dayssince
 
 config = ToonbotConf()
 
+comics_dirpath = parentdir + "/comics"
 
 outputs = []
 
@@ -113,6 +114,16 @@ def deletepack (data, conn, curs):
             curs.execute(cmd, ([packcode]))
             conn.commit()
             outputs.append([data['channel'], "Pack `" + packcode + "` deleted, and users unsubscribed."])
+
+    except Exception, e:
+        outputs.append([data['channel'], "Syntax error."])
+        print e
+
+    return outputs
+
+def installpack (data, conn, curs):
+    try:
+        packcode = data['text'].split(' ', 1)[1]
 
     except Exception, e:
         outputs.append([data['channel'], "Syntax error."])
