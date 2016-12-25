@@ -123,7 +123,7 @@ def deletepack (data, conn, curs):
 
 def installpack (data, conn, curs):
     try:
-        packcode = data['text'].split(' ', 1)[1]
+        gitpack = data['text'].split(' ', 1)[1]
 
     except Exception, e:
         outputs.append([data['channel'], "Syntax error."])
