@@ -2,11 +2,14 @@
 from __main__ import *
 import time
 import shutil
+import tempfile
 import MySQLdb
 import sys
 import json
+import requests
 import urllib2
 import re
+import zipfile
 from prettytable import PrettyTable
 from datetime import datetime, time, timedelta
 
@@ -123,7 +126,20 @@ def deletepack (data, conn, curs):
 
 def installpack (data, conn, curs):
     try:
+        tmppackdir = tempfile.mkdtemp()
+        print tmppackdir
         gitpack = data['text'].split(' ', 1)[1]
+
+        gitapiurl = "https://api.github.com/repos/" + gitpack + "/releases/latest"
+
+        response = urllib2.urlopen(gitapiurl)
+        jsonres = json.load(response)
+
+        packlocation = jsonres["zipball_url"]
+        response = requests.get(packlocation, stream=True, allow_redirects=True)
+        with open(tmppackdir + "/pack.zip", 'wb') as out_file:
+            shutil.copyfileobj(response.raw, out_file)
+        del response
 
     except Exception, e:
         outputs.append([data['channel'], "Syntax error."])
