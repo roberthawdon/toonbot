@@ -8,8 +8,10 @@ import sys
 import json
 import requests
 import urllib2
+import glob
 import re
 import zipfile
+import yaml
 from prettytable import PrettyTable
 from datetime import datetime, time, timedelta
 
@@ -126,20 +128,52 @@ def deletepack (data, conn, curs):
 
 def installpack (data, conn, curs):
     try:
-        tmppackdir = tempfile.mkdtemp()
-        print tmppackdir
         gitpack = data['text'].split(' ', 1)[1]
 
-        gitapiurl = "https://api.github.com/repos/" + gitpack + "/releases/latest"
+        cmd = "SELECT UUID FROM tbl_packs WHERE github = %s"
+        curs.execute(cmd, ([gitpack]))
+        result = curs.fetchall()
+        if len(result) == 0:
+            tmppackdir = tempfile.mkdtemp()
+            print tmppackdir
 
-        response = urllib2.urlopen(gitapiurl)
-        jsonres = json.load(response)
+            gitapiurl = "https://api.github.com/repos/" + gitpack + "/releases/latest"
 
-        packlocation = jsonres["zipball_url"]
-        response = requests.get(packlocation, stream=True, allow_redirects=True)
-        with open(tmppackdir + "/pack.zip", 'wb') as out_file:
-            shutil.copyfileobj(response.raw, out_file)
-        del response
+            response = urllib2.urlopen(gitapiurl)
+            jsonres = json.load(response)
+
+            packlocation = jsonres["zipball_url"]
+            response = requests.get(packlocation, stream=True, allow_redirects=True)
+            with open(tmppackdir + "/pack.zip", 'wb') as out_file:
+                shutil.copyfileobj(response.raw, out_file)
+            del response
+            zip_ref = zipfile.ZipFile(tmppackdir + "/pack.zip", 'r')
+            zip_ref.extractall(tmppackdir)
+            zip_ref.close()
+            tmpname = gitpack.replace("/", "-")
+            tmpdir = glob.glob(tmppackdir + "/" + tmpname + "*")
+
+            packconfigdata = yaml.load(open(tmpdir[0] + "/toonpack.yml"))
+            packuuid = packconfigdata["PackUUID"]
+            packcode = packconfigdata["PackCode"]
+            packname = packconfigdata["PackName"]
+            packdesc = packconfigdata["PackDescription"]
+            packversion = packconfigdata["Version"]
+            packgen = packconfigdata["PackGen"]
+            packprefs = packconfigdata["CustomPreferences"]
+            for key, value in packprefs.iteritems():
+                cmd = "INSERT IGNORE INTO tbl_custom_preferences (`name`, `default`, `description`) VALUES (%s, %s, %s) ON DUPLICATE KEY UPDATE `default` = %s, `description` = %s"
+                curs.execute(cmd, ([key], [value["default"]], [value["description"]], [value["default"]], [value["description"]]))
+                conn.commit()
+
+            cmd = "INSERT INTO tbl_packs (UUID, packcode, packname, packdesc, version, packgen, directory, github) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
+            curs.execute(cmd, ([packuuid], [packcode], [packname], [packdesc], [packversion], [packgen], [packcode], [gitpack]))
+            packid = conn.insert_id()
+            conn.commit()
+            shutil.move(tmpdir[0], comics_dirpath + "/" + packcode)
+            shutil.rmtree(tmppackdir)
+        else:
+            outputs.append([data['channel'], "Pack already installed."])
 
     except Exception, e:
         outputs.append([data['channel'], "Syntax error."])
