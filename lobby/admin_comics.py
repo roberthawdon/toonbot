@@ -17,6 +17,9 @@ from datetime import datetime, time, timedelta
 
 import os, inspect
 
+# To-Do, database this
+defaultmode = 1
+
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0,parentdir)
@@ -135,7 +138,6 @@ def installpack (data, conn, curs):
         result = curs.fetchall()
         if len(result) == 0:
             tmppackdir = tempfile.mkdtemp()
-            print tmppackdir
 
             gitapiurl = "https://api.github.com/repos/" + gitpack + "/releases/latest"
 
@@ -170,8 +172,18 @@ def installpack (data, conn, curs):
             curs.execute(cmd, ([packuuid], [packcode], [packname], [packdesc], [packversion], [packgen], [packcode], [gitpack]))
             packid = conn.insert_id()
             conn.commit()
-            shutil.move(tmpdir[0], comics_dirpath + "/" + packcode)
+            packdirectory = comics_dirpath + "/" + packcode
+            shutil.move(tmpdir[0], packdirectory)
             shutil.rmtree(tmppackdir)
+            for file in os.listdir(packdirectory):
+                if file.endswith(".py"):
+                    modulename = re.sub(r'.py$', '', file)
+                    comicnamecode = modulename
+                    comicname, comictitle = (comicnamecode, comicnamecode)
+                    cmd = "INSERT INTO tbl_comics (comicname, displayname, pack, mode) VALUES (%s, %s, %s, %s)"
+                    curs.execute(cmd, ([comicname], [comictitle], [packid], [defaultmode]))
+                    conn.commit()
+            outputs.append([data['channel'], "Installed the " + packname + " pack (`" + packcode + "`)."])
         else:
             outputs.append([data['channel'], "Pack already installed."])
 
