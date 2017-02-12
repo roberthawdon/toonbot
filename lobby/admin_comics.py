@@ -187,6 +187,52 @@ def installpack (data, conn, curs):
         else:
             outputs.append([data['channel'], "Pack already installed."])
 
+    except urllib2.HTTPError, e:
+        outputs.append([data['channel'], "Pack not found."])
+        shutil.rmtree(tmppackdir)
+
+    except IOError, e:
+        outputs.append([data['channel'], "Error reading pack. Maybe this is not a ToonBot Pack."])
+        shutil.rmtree(tmppackdir)
+
+    return outputs
+
+def packadmin (data, conn, curs):
+    try:
+        modecommand = data['text'].split(' ', 1)[1]
+        if modecommand.startswith("activate") or modecommand.startswith("enable"):
+            modecode = '0'
+        elif modecommand.startswith("deactivate"):
+            modecode = '1'
+        elif modecommand.startswith("disable"):
+            modecode = '2'
+        elif modecommand.startswith("hide"):
+            modecode = '3'
+        elif modecommand.startswith("list"):
+            outputs.append([data['channel'], "Coming soon."])
+            return
+            # return comicstatus(data, curs)
+        else:
+            outputs.append([data['channel'], "Please choose `activate`, `deactivate`, `disable`, or `hide` followed by the pack name, or `list` to see the status of packs."])
+            return outputs
+        selectedpack = modecommand.split(' ', 1)[1]
+        cmd = "SELECT * FROM tbl_packs WHERE packcode = %s"
+        curs.execute(cmd, ([selectedpack]))
+        result = curs.fetchall()
+        if len(result) == 0:
+            outputs.append([data['channel'], "No pack `" + selectedpack + "` available."])
+        else:
+            cmd = "UPDATE tbl_comics SET mode = %s WHERE pack IN (SELECT ID FROM tbl_packs WHERE packcode = %s)"
+            curs.execute(cmd, ([modecode], [selectedpack]))
+            conn.commit()
+            if modecode == '0':
+                outputs.append([data['channel'], "I have *activated* all of the comics in the `" + selectedpack + "` pack."])
+            elif modecode == '1':
+                outputs.append([data['channel'], "I have *deactivated* all of the comics in the `" + selectedpack + "` pack."])
+            elif modecode == '2':
+                outputs.append([data['channel'], "I have *disabled* all of the comics in the `" + selectedpack + "` pack."])
+            elif modecode == '3':
+                outputs.append([data['channel'], "I have *hidden* all of the comics in the `" + selectedpack + "` pack."])
     except Exception, e:
         outputs.append([data['channel'], "Syntax error."])
         print e

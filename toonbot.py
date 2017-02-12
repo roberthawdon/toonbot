@@ -166,6 +166,8 @@ class ToonBot(Plugin):
                         lobby = deletepack(data, conn, curs)
                     elif data['text'].startswith("installpack") and (str(admin) == '1' or str(admin) == '2'):
                         lobby = installpack(data, conn, curs)
+                    elif data['text'].startswith("packadmin") and (str(admin) == '1' or str(admin) == '2'):
+                        lobby = packadmin(data, conn, curs)
                     elif data['text'] == "help":
                         lobby = help(data)
                     elif data['text'] == "about":
