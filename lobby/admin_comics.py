@@ -210,7 +210,7 @@ def packadmin (data, conn, curs):
             modecode = '3'
         elif modecommand.startswith("list"):
             outputs.append([data['channel'], "Coming soon."])
-            return
+            return outputs
             # return comicstatus(data, curs)
         else:
             outputs.append([data['channel'], "Please choose `activate`, `deactivate`, `disable`, or `hide` followed by the pack name, or `list` to see the status of packs."])
