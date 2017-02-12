@@ -61,6 +61,13 @@ Set comics to various modes:
   * `deactivate` - The comic is removed from the list. Users will not be able to subscribe or unsubscribe to it, and new updates will not be fetched.
   * `disable` - The comic is shown in the list, users can subscribe or unsubscribe from it but updates will not be fetched. The last comic fetched will be posted to new subscribers if available.
   * `hidden` - The comic will not be shown in the list. The user can subscribe or unsubscribe from it, comics will be fetched and posted. This is useful for trialling new comics, or comics not indented for public consumption.
+* `installpack` - Install comic pack from github repo.
+* `deletepack` - Uninstall comic pack and unsubscribe all users to the comics in that pack.
+* `packadmin` - Allows for bulk administration of comics by pack, uses the same modes as `comicadmin`:
+  * `activate`
+  * `deactivate`
+  * `disable`
+  * `hidden`
 * `globalstarttime` - Defines the default start of day in the `HH:MM:SS` format. This will not affect users' own preferences.
 * `globalendtime` - Defines the default end of day in the `HH:MM:SS` format. Again, this will not affect users' own preferences.
 * `globalpostcolour` - Sets the default attachment colour, pass a colour value in hex format.
