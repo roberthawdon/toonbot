@@ -180,9 +180,15 @@ def installpack (data, conn, curs):
                     modulename = re.sub(r'.py$', '', file)
                     comicnamecode = modulename
                     comicname, comictitle = (comicnamecode, comicnamecode)
-                    cmd = "INSERT INTO tbl_comics (comicname, displayname, pack, mode) VALUES (%s, %s, %s, %s)"
-                    curs.execute(cmd, ([comicname], [comictitle], [packid], [defaultmode]))
+                    cmd = "INSERT IGNORE INTO tbl_comics (comicname, displayname, pack, mode) VALUES (%s, %s, %s, %s) ON DUPLICATE KEY UPDATE pack = %s"
+                    curs.execute(cmd, ([comicname], [comictitle], [packid], [defaultmode], [packid]))
                     conn.commit()
+                    standalone = comics_dirpath + "/" + comicname + ".py"
+                    if os.path.isfile(standalone):
+                        os.remove(standalone)
+                        if os.path.isfile(standalone + "c"):
+                            os.remove(standalone + "c")
+                        outputs.append([data['channel'], "Removing standalone version of `" + comicname + "`."])
             outputs.append([data['channel'], "Installed the " + packname + " pack (`" + packcode + "`)."])
         else:
             outputs.append([data['channel'], "Pack already installed."])
@@ -197,6 +203,86 @@ def installpack (data, conn, curs):
 
     return outputs
 
+def updatepack (data, conn, curs):
+    try:
+        inpackname = data['text'].split(' ', 1)[1]
+
+        cmd = "SELECT ID, UUID, packcode, packname, github, version FROM tbl_packs WHERE packcode = %s"
+        curs.execute(cmd, ([inpackname]))
+        result = curs.fetchall()
+        if len(result) != 0:
+            for pack in result:
+                packid = pack[0]
+                packuuid = pack[1]
+                packcode = pack[2]
+                packname = pack[3]
+                gitpack = pack[4]
+                packversion = pack[5]
+            gitapiurl = "https://api.github.com/repos/" + gitpack + "/releases/latest"
+
+            response = urllib2.urlopen(gitapiurl)
+            jsonres = json.load(response)
+            packlatest = jsonres["tag_name"]
+            packlocation = jsonres["zipball_url"]
+            if float(packversion) < float(packlatest):
+                tmppackdir = tempfile.mkdtemp()
+                response = requests.get(packlocation, stream=True, allow_redirects=True)
+                with open(tmppackdir + "/pack.zip", 'wb') as out_file:
+                    shutil.copyfileobj(response.raw, out_file)
+                del response
+                zip_ref = zipfile.ZipFile(tmppackdir + "/pack.zip", 'r')
+                zip_ref.extractall(tmppackdir)
+                zip_ref.close()
+                tmpname = gitpack.replace("/", "-")
+                tmpdir = glob.glob(tmppackdir + "/" + tmpname + "*")
+
+                packconfigdata = yaml.load(open(tmpdir[0] + "/toonpack.yml"))
+                packuuid = packconfigdata["PackUUID"]
+                packcode = packconfigdata["PackCode"]
+                packname = packconfigdata["PackName"]
+                packdesc = packconfigdata["PackDescription"]
+                packversion = packconfigdata["Version"]
+                packgen = packconfigdata["PackGen"]
+                packprefs = packconfigdata["CustomPreferences"]
+                for key, value in packprefs.iteritems():
+                    cmd = "INSERT IGNORE INTO tbl_custom_preferences (`name`, `default`, `description`) VALUES (%s, %s, %s) ON DUPLICATE KEY UPDATE `default` = %s, `description` = %s"
+                    curs.execute(cmd, ([key], [value["default"]], [value["description"]], [value["default"]], [value["description"]]))
+                    conn.commit()
+
+                cmd = "UPDATE tbl_packs SET packcode = %s, packname = %s, packdesc = %s, version = %s, packgen = %s, directory = %s WHERE UUID = %s"
+                curs.execute(cmd, ([packcode], [packname], [packdesc], [packversion], [packgen], [packcode], [packuuid]))
+                conn.commit()
+                packdirectory = comics_dirpath + "/" + packcode
+                shutil.rmtree(packdirectory)
+                shutil.move(tmpdir[0], packdirectory)
+                shutil.rmtree(tmppackdir)
+                for file in os.listdir(packdirectory):
+                    if file.endswith(".py"):
+                        modulename = re.sub(r'.py$', '', file)
+                        comicnamecode = modulename
+                        comicname, comictitle = (comicnamecode, comicnamecode)
+                        cmd = "INSERT IGNORE INTO tbl_comics (comicname, displayname, pack, mode) VALUES (%s, %s, %s, %s) ON DUPLICATE KEY UPDATE comicname = %s, displayname = %s, pack = %s"
+                        curs.execute(cmd, ([comicname], [comictitle], [packid], [defaultmode], [comicname], [comictitle], [packid]))
+                        conn.commit()
+                outputs.append([data['channel'], "Comic pack *" + packname + "* upgraded to version `" + packversion + "`."])
+            elif float(packversion) == float(packlatest):
+                outputs.append([data['channel'], "Comic pack *" + packname + "* already at the latest version."])
+            else:
+                outputs.append([data['channel'], "Local installation of *" + packname + "* appears newer than the published version, or an unexpected error occured. Aborting."])
+
+
+    except urllib2.HTTPError, e:
+        outputs.append([data['channel'], "Pack not found."])
+        shutil.rmtree(tmppackdir)
+
+    except IOError, e:
+        outputs.append([data['channel'], "Error reading pack. Maybe this is not a ToonBot Pack."])
+        shutil.rmtree(tmppackdir)
+
+    return outputs
+
+
+
 def packadmin (data, conn, curs):
     try:
         modecommand = data['text'].split(' ', 1)[1]
@@ -209,9 +295,7 @@ def packadmin (data, conn, curs):
         elif modecommand.startswith("hide"):
             modecode = '3'
         elif modecommand.startswith("list"):
-            outputs.append([data['channel'], "Coming soon."])
-            return outputs
-            # return comicstatus(data, curs)
+            return packstatus(data, curs)
         else:
             outputs.append([data['channel'], "Please choose `activate`, `deactivate`, `disable`, or `hide` followed by the pack name, or `list` to see the status of packs."])
             return outputs
@@ -237,4 +321,20 @@ def packadmin (data, conn, curs):
         outputs.append([data['channel'], "Syntax error."])
         print e
 
+    return outputs
+
+def packstatus(data, curs):
+    tablepacks = PrettyTable(["Pack", "Name", "Description", "Version", "Auto Update"])
+    tablepacks.align["Pack"] = "l"
+    tablepacks.padding_width = 1
+    cmd = "SELECT packcode, packname, packdesc, version, autoupdate FROM tbl_packs ORDER BY packcode"
+    curs.execute(cmd)
+    result = curs.fetchall()
+    for packs in result:
+        if packs[4] == 1:
+            updateflag = "Yes"
+        else:
+            updateflag = ""
+        tablepacks.add_row([packs[0], packs[1], packs[2], packs[3], updateflag])
+    outputs.append([data['channel'], "```" + str(tablepacks) + "```"])
     return outputs

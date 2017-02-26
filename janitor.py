@@ -46,6 +46,7 @@ class JanitorJob(Job):
     def run(self, slack_client):
         scheduled = checkruntime()
         if runat(scheduled, cron):
+	    # List jobs to run through the janitor
             checkaccount()
         return []
 
