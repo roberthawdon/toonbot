@@ -82,8 +82,8 @@ class ToonBot(Plugin):
     else:
         feedbacksetting = True
 
-    botversion = "0.8.0-Dev"
-    botcodename = "Project Garfield"
+    botversion = "0.8.0"
+    botcodename = "Garfield"
 
     try:
         conn = MySQLdb.Connection(mysqlserver, mysqluser, mysqlpass, mysqldb)

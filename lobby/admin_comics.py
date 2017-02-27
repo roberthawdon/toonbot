@@ -296,10 +296,15 @@ def packadmin (data, conn, curs):
             modecode = '3'
         elif modecommand.startswith("list"):
             return packstatus(data, curs)
+        elif modecommand.startswith("autoupdate"):
+            return updateswitch(data, modecommand, conn, curs)
         else:
-            outputs.append([data['channel'], "Please choose `activate`, `deactivate`, `disable`, or `hide` followed by the pack name, or `list` to see the status of packs."])
+            outputs.append([data['channel'], "Please choose `activate`, `deactivate`, `disable`, or `hide` followed by the pack name, `autoupdate` followed by `on` or `off`, or `list` to see the status of packs."])
             return outputs
-        selectedpack = modecommand.split(' ', 1)[1]
+        try:
+            selectedpack = modecommand.split(' ', 1)[1]
+        except IndexError:
+            selectedpack = None
         cmd = "SELECT * FROM tbl_packs WHERE packcode = %s"
         curs.execute(cmd, ([selectedpack]))
         result = curs.fetchall()
@@ -319,7 +324,6 @@ def packadmin (data, conn, curs):
                 outputs.append([data['channel'], "I have *hidden* all of the comics in the `" + selectedpack + "` pack."])
     except Exception, e:
         outputs.append([data['channel'], "Syntax error."])
-        print e
 
     return outputs
 
@@ -337,4 +341,40 @@ def packstatus(data, curs):
             updateflag = ""
         tablepacks.add_row([packs[0], packs[1], packs[2], packs[3], updateflag])
     outputs.append([data['channel'], "```" + str(tablepacks) + "```"])
+    return outputs
+
+def updateswitch(data, command, conn, curs):
+    try:
+        packcommand = command.split(' ', 1)[1]
+    except IndexError:
+        packcommand = None
+        outputs.append([data['channel'], "Syntax error."])
+        return outputs
+    try:
+        pack = packcommand.split(' ', 1)[0]
+    except IndexError:
+        pack = None
+    try:
+        switch = packcommand.split(' ', 1)[1]
+    except IndexError:
+        switch = None
+    cmd = "SELECT ID FROM tbl_packs WHERE packcode = %s"
+    curs.execute(cmd, ([pack]))
+    result = curs.fetchall()
+    if len(result) != 0:
+        if switch == "on":
+            code = 1
+            action = "enabled"
+        elif switch == "off":
+            code = 2
+            action = "disabled"
+        else:
+            outputs.append([data['channel'], "Please choose `on` or `off`."])
+            return outputs
+        cmd = "UPDATE tbl_packs SET autoupdate = %s WHERE packcode = %s"
+        curs.execute(cmd, ([code], [pack]))
+        conn.commit()
+        outputs.append([data['channel'], "Autoupdate has been " + action + " for the pack `" + pack + "`."])
+    else:
+        outputs.append([data['channel'], "Pack `" + pack + "` not installed."])
     return outputs
