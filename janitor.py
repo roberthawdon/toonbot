@@ -9,6 +9,7 @@ from checktime import runat
 from checkaccount import checkaccount
 from rtmbot.core import Plugin, Job
 from confload import ToonbotConf
+from autoupdatepacks import autoupdatepacks
 
 config = ToonbotConf()
 
@@ -48,7 +49,9 @@ class JanitorJob(Job):
         if runat(scheduled, cron):
 	    # List jobs to run through the janitor
             checkaccount()
+            autoupdatepacks()
         return []
+
 
 class Janitor(Plugin):
     def register_jobs(self):
