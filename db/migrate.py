@@ -13,7 +13,7 @@ from warnings import filterwarnings
 
 filterwarnings('ignore', category = MySQLdb.Warning)
 
-print "Toon Bot data migration V1.3"
+print "Toon Bot data migration V1.4"
 print "----------------------------"
 
 def parse_args():
@@ -34,7 +34,7 @@ if __name__ == "__main__":
                                 directory
                                 ))
 
-    config = yaml.load(file(args.config or '../../../rtmbot.conf', 'r'))
+    config = yaml.load(file(args.config or '../toonbot.conf', 'r'))
     mysqlserver = config["MYSQL_SERVER"]
     mysqluser = config["MYSQL_USER"]
     mysqlpass = config["MYSQL_PASS"]

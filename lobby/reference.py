@@ -5,6 +5,15 @@ import MySQLdb
 import sys
 import re
 from datetime import datetime
+import os, inspect
+
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(currentdir)
+sys.path.insert(0,parentdir)
+
+from confload import ToonbotConf
+
+config = ToonbotConf()
 
 outputs = []
 

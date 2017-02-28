@@ -1,6 +1,9 @@
 from __main__ import *
 import json
 import urllib2
+from confload import ToonbotConf
+
+config = ToonbotConf()
 
 slacktoken = config["SLACK_TOKEN"]
 

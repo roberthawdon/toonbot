@@ -1,2 +1,5 @@
 *.pyc
 .#*
+/toonbot.conf
+comics/*
+!comics/README.md
