@@ -5,11 +5,15 @@ A plugin for Slack's python-rtmbot to send web comics via direct messages.
 **Warning: These instructions are incomplete and will be refined as the project matures**
 
 * Create a MySQL database and user for Toonbot.
-* Clone [python-rtmbot](https://github.com/slackhq/python-rtmbot) to a place on your server. _Follow the instructions there to configure it for your server._
-* Change into the plugins directory.
-* Clone this repo into the plugins directory
+* Follow the [installation for python-rtmbot](https://github.com/slackhq/python-rtmbot#installation) and ensure you're using version 0.4 or above.
+* Create a directory on your system for toonbot (/opt/toonbot for example)
+* Create a plugins directory
+* Create a blank file called `__init__.py`
+* Download and extract the latest version of Toonbot into a directory called `toonbot` or clone the master branch of this repo.
 * Copy the example rtmbot.conf to the root of python-rtmbot.
-* Edit it filling in your MySQL database details as well as Slack details.
+* Edit it filling in your Slack API key.
+* Copy the example toonbot.conf to the toonbot plugin directory.
+* Edit it filling in your Slack API key (again), MySQL details, and email settings (if you're planning on using the feedback function). 
 * Switch to the db/base directory and import the database to MySQL.
 * Go up one level and run `./migrate.py` to update the database with any last minute changes.
 * Start rtmbot and talk to your Toonbot user on slack.
@@ -24,9 +28,16 @@ A plugin for Slack's python-rtmbot to send web comics via direct messages.
 ### Manual upgrade instructions
 * Stop python-rtmbot.
 * [Optional] Upgrade python-rtmbot. (Highly recommended)
-* Enter the plugins/toonbot directory and run `git pull`.
+* Either download and extract the latest version, or `git pull` depending on how you installed Toonbot.
 * Enter the db directory and run `./migrate.py` to update the database.
 * Start python-rtmbot
+
+### Notes on upgrading from versions prior to 0.8.0
+The configurations files have been changed for use with rtmbot 0.4, please see the installation instructions above.
+**Comics are no longer included with the bot.** Upon upgrading, the comics installed will unsupported and should be replaced with the classic comic pack.
+To do this, please do the following:
+* Using an administrator account, say `installpack roberthawdon/toonbot-pack`
+This will install the latest version of the classic pack. All old versions of the comics will be considered as standalone versions and will be automatically removed and replaced with the pack version. This will ensure a smooth transition and keep users subscribed to their comics.
 
 ## User Commands
 
@@ -37,6 +48,7 @@ A plugin for Slack's python-rtmbot to send web comics via direct messages.
 * `postcolour` - Change the colour of image attachments, please provide your colour in a hex format such as `#d3f6aa`.
 * `posttextcolour` - Changes the colour of the attachments containing supplementary text used by some comics. Again, provide the colour in a hex format.
 * `clear preferences` - This will clear all your custom preferences resetting them to the defaults. This will not unsubscribe you from comics.
+* `show preferences` - To view all your current preferences.
 * `claimadmin` - This sets your user as an administrator if no other users are administrators. This should be run when first setting up the bot. Should someone else have claimed the first administrator user, the stored procedure further on will allow you to manually force your user to become administrator.
 * `help` - Display a short help message for users.
 * `version` - Show version info.
@@ -60,6 +72,15 @@ Set comics to various modes:
   * `deactivate` - The comic is removed from the list. Users will not be able to subscribe or unsubscribe to it, and new updates will not be fetched.
   * `disable` - The comic is shown in the list, users can subscribe or unsubscribe from it but updates will not be fetched. The last comic fetched will be posted to new subscribers if available.
   * `hidden` - The comic will not be shown in the list. The user can subscribe or unsubscribe from it, comics will be fetched and posted. This is useful for trialling new comics, or comics not indented for public consumption.
+* `installpack` - Install comic pack from github repo.
+* `deletepack` - Uninstall comic pack and unsubscribe all users to the comics in that pack.
+* `packadmin` - Allows for bulk administration of comics by pack, uses the same modes as `comicadmin`:
+  * `list`
+  * `activate`
+  * `deactivate`
+  * `disable`
+  * `hidden`
+  * `autoupdate` - allows you to enable or disable automatic updates on each comic pack (either set it to `on` or `off`) - The automatic updates are performed as part of the Janitor routine.
 * `globalstarttime` - Defines the default start of day in the `HH:MM:SS` format. This will not affect users' own preferences.
 * `globalendtime` - Defines the default end of day in the `HH:MM:SS` format. Again, this will not affect users' own preferences.
 * `globalpostcolour` - Sets the default attachment colour, pass a colour value in hex format.
@@ -89,6 +110,12 @@ The following can be called to remove a comic and unsubscribe users from it:
 
 ```mysql
 CALL delete_comic('comicname');
+```
+
+A whole comic pack can be removed from the database with this:
+
+```mysql
+CALL delete_comic_pack('packname');
 ```
 
 The following can be run to upgrade a user to an admin:

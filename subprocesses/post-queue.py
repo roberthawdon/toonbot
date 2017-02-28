@@ -67,7 +67,7 @@ class PosterBot(object):
         result = curs.fetchall()
         for color in result:
             defaultposttextcolor = color[0]
-        cmd = "SELECT Q.ID, Q.slackuser, Q.displayname, Q.comichash, Q.flags, U.dmid, P.postcolor, P.posttextcolor FROM tbl_queue Q LEFT JOIN tbl_users U ON U.slackuser = Q.slackuser LEFT JOIN tbl_user_prefs P ON P.slackuser = Q.slackuser WHERE Q.sent = 0"
+        cmd = "SELECT Q.ID, Q.slackuser, Q.displayname, Q.comichash, Q.flags, U.dmid FROM tbl_queue Q LEFT JOIN tbl_users U ON U.slackuser = Q.slackuser WHERE Q.sent = 0"
         curs.execute(cmd)
         result = curs.fetchall()
         for items in result:
@@ -77,14 +77,25 @@ class PosterBot(object):
             comichash = items[3]
             flags = items[4]
             dmid = items[5]
-            userpostcolor = items[6]
-            if userpostcolor is not None:
-                postcolor = userpostcolor
+            cmd = "SELECT ID FROM tbl_users WHERE slackuser = %s"
+            curs.execute(cmd, [slackuser])
+            result = curs.fetchall()
+            for users in result:
+                userid = users[0]
+            cmd = "SELECT name, value FROM tbl_preferences WHERE userID = %s"
+            curs.execute(cmd, [userid])
+            result = curs.fetchall()
+            prefname = []
+            prefvalue = []
+            for preferences in result:
+                prefname.append(preferences[0])
+                prefvalue.append(preferences[1])
+            if 'postcolor' in prefname:
+                postcolor = prefvalue[prefname.index("postcolor")]
             else:
                 postcolor = defaultpostcolor
-            userposttextcolor = items[7]
-            if userposttextcolor is not None:
-                posttextcolor = userposttextcolor
+            if 'posttextcolor' in prefname:
+                posttextcolor = prefvalue[prefname.index("posttextcolor")]
             else:
                 posttextcolor = defaultposttextcolor
 
@@ -149,5 +160,5 @@ def parse_args():
 
 # load args with config path
 args = parse_args()
-config = yaml.load(open(args.config or script_dirpath + '/../../../rtmbot.conf', 'r'))
+config = yaml.load(open(args.config or script_dirpath + '/../toonbot.conf', 'r'))
 PosterBot(config)
