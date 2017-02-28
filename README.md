@@ -5,11 +5,15 @@ A plugin for Slack's python-rtmbot to send web comics via direct messages.
 **Warning: These instructions are incomplete and will be refined as the project matures**
 
 * Create a MySQL database and user for Toonbot.
-* Clone [python-rtmbot](https://github.com/slackhq/python-rtmbot) to a place on your server. _Follow the instructions there to configure it for your server._
-* Change into the plugins directory.
-* Clone this repo into the plugins directory
+* Follow the [installation for python-rtmbot](https://github.com/slackhq/python-rtmbot#installation) and ensure you're using version 0.4 or above.
+* Create a directory on your system for toonbot (/opt/toonbot for example)
+* Create a plugins directory
+* Create a blank file called `__init__.py`
+* Download and extract the latest version of Toonbot into a directory called `toonbot` or clone the master branch of this repo.
 * Copy the example rtmbot.conf to the root of python-rtmbot.
-* Edit it filling in your MySQL database details as well as Slack details.
+* Edit it filling in your Slack API key.
+* Copy the example toonbot.conf to the toonbot plugin directory.
+* Edit it filling in your Slack API key (again), MySQL details, and email settings (if you're planning on using the feedback function). 
 * Switch to the db/base directory and import the database to MySQL.
 * Go up one level and run `./migrate.py` to update the database with any last minute changes.
 * Start rtmbot and talk to your Toonbot user on slack.
@@ -24,9 +28,16 @@ A plugin for Slack's python-rtmbot to send web comics via direct messages.
 ### Manual upgrade instructions
 * Stop python-rtmbot.
 * [Optional] Upgrade python-rtmbot. (Highly recommended)
-* Enter the plugins/toonbot directory and run `git pull`.
+* Either download and extract the latest version, or `git pull` depending on how you installed Toonbot.
 * Enter the db directory and run `./migrate.py` to update the database.
 * Start python-rtmbot
+
+### Notes on upgrading from versions prior to 0.8.0
+The configurations files have been changed for use with rtmbot 0.4, please see the installation instructions above.
+**Comics are no longer included with the bot.** Upon upgrading, the comics installed will unsupported and should be replaced with the classic comic pack.
+To do this, please do the following:
+* Using an administrator account, say `installpack roberthawdon/toonbot-pack`
+This will install the latest version of the classic pack. All old versions of the comics will be considered as standalone versions and will be automatically removed and replaced with the pack version. This will ensure a smooth transition and keep users subscribed to their comics.
 
 ## User Commands
 
@@ -64,10 +75,12 @@ Set comics to various modes:
 * `installpack` - Install comic pack from github repo.
 * `deletepack` - Uninstall comic pack and unsubscribe all users to the comics in that pack.
 * `packadmin` - Allows for bulk administration of comics by pack, uses the same modes as `comicadmin`:
+  * `list`
   * `activate`
   * `deactivate`
   * `disable`
   * `hidden`
+  * `autoupdate` - allows you to enable or disable automatic updates on each comic pack (either set it to `on` or `off`) - The automatic updates are performed as part of the Janitor routine.
 * `globalstarttime` - Defines the default start of day in the `HH:MM:SS` format. This will not affect users' own preferences.
 * `globalendtime` - Defines the default end of day in the `HH:MM:SS` format. Again, this will not affect users' own preferences.
 * `globalpostcolour` - Sets the default attachment colour, pass a colour value in hex format.

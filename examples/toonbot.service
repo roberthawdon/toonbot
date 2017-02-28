@@ -3,7 +3,8 @@ Description=Toonbot
 
 [Service]
 Type=simple
-ExecStart=/opt/toonbot/toonbot.sh
+WorkingDirectory=/opt/toonbot
+ExecStart=rtmbot
 Restart=always
 
 [Install]
