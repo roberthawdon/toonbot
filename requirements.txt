@@ -1,0 +1,6 @@
+MySQL-python
+prettytable
+tendo
+pyyaml
+BeautifulSoup
+feedparser
