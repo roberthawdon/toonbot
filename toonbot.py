@@ -82,8 +82,8 @@ class ToonBot(Plugin):
     else:
         feedbacksetting = True
 
-    botversion = "0.8.0"
-    botcodename = "Garfield"
+    botversion = "0.9.0-dev-0.0.1"
+    botcodename = "Project Snoopy"
 
     try:
         conn = MySQLdb.Connection(mysqlserver, mysqluser, mysqlpass, mysqldb)
@@ -170,6 +170,8 @@ class ToonBot(Plugin):
                         lobby = updatepack(data, conn, curs)
                     elif data['text'].startswith("packadmin") and (str(admin) == '1' or str(admin) == '2'):
                         lobby = packadmin(data, conn, curs)
+                    elif data['text'] == "restart" and (str(admin) == '1' or str(admin) == '2'):
+                        lobby = reloadbot()
                     elif data['text'] == "help":
                         lobby = help(data)
                     elif data['text'] == "about":

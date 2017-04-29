@@ -110,3 +110,6 @@ def janitorruntime(data, conn, curs):
     except Exception, e:
         outputs.append([data['channel'], "Please specify a time in the `HH:MM:SS` format."])
     return outputs
+
+def reloadbot():
+    os.execl(sys.executable, *([sys.executable]+sys.argv))
