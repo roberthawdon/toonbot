@@ -1,6 +1,10 @@
 # Toonbot
 A plugin for Slack's python-rtmbot to send web comics via direct messages.
 
+***
+
+<p align="center"><img src="/doc/img/screenshot.png" alt="Toonbot"/></p>
+
 ## Install
 **Warning: These instructions are incomplete and will be refined as the project matures**
 
