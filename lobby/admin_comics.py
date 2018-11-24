@@ -14,6 +14,7 @@ import zipfile
 import yaml
 from prettytable import PrettyTable
 from datetime import datetime, time, timedelta
+from distutils.version import LooseVersion, StrictVersion
 
 import os, inspect
 
@@ -224,7 +225,7 @@ def updatepack (data, conn, curs):
             jsonres = json.load(response)
             packlatest = jsonres["tag_name"]
             packlocation = jsonres["zipball_url"]
-            if float(packversion) < float(packlatest):
+            if StrictVersion(packversion) < StrictVersion(packlatest):
                 tmppackdir = tempfile.mkdtemp()
                 response = requests.get(packlocation, stream=True, allow_redirects=True)
                 with open(tmppackdir + "/pack.zip", 'wb') as out_file:
@@ -265,7 +266,7 @@ def updatepack (data, conn, curs):
                         curs.execute(cmd, ([comicname], [comictitle], [packid], [defaultmode], [comicname], [comictitle], [packid]))
                         conn.commit()
                 outputs.append([data['channel'], "Comic pack *" + packname + "* upgraded to version `" + packversion + "`."])
-            elif float(packversion) == float(packlatest):
+            elif StrictVersion(packversion) == StrictVersion(packlatest):
                 outputs.append([data['channel'], "Comic pack *" + packname + "* already at the latest version."])
             else:
                 outputs.append([data['channel'], "Local installation of *" + packname + "* appears newer than the published version, or an unexpected error occured. Aborting."])
