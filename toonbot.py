@@ -82,7 +82,7 @@ class ToonBot(Plugin):
     else:
         feedbacksetting = True
 
-    botversion = "0.8.0"
+    botversion = "0.8.2"
     botcodename = "Garfield"
 
     try:
